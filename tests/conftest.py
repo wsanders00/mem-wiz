@@ -16,6 +16,8 @@ SRC_ROOT = REPO_ROOT / "src"
 if str(SRC_ROOT) not in sys.path:
     sys.path.insert(0, str(SRC_ROOT))
 
+from memwiz.clock import FixedClock
+
 
 def read_project_script_target(script_name: str = "memwiz") -> str:
     pyproject_text = (REPO_ROOT / "pyproject.toml").read_text(encoding="utf-8")
@@ -65,3 +67,11 @@ def run_memwiz(tmp_path_factory: pytest.TempPathFactory):
         )
 
     return _run
+
+
+@pytest.fixture
+def make_fixed_clock():
+    def _make(value: str = "2026-04-08T15:30:00Z") -> FixedClock:
+        return FixedClock.from_value(value)
+
+    return _make

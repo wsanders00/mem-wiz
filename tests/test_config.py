@@ -102,6 +102,23 @@ def test_workspace_slug_falls_back_to_current_directory_basename_outside_git_rep
     assert config.workspace_slug == "outside-project"
 
 
+def test_workspace_slug_falls_back_to_current_directory_when_git_is_unavailable(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    workspace_directory = tmp_path / "No Git Here"
+    workspace_directory.mkdir()
+
+    def raise_file_not_found(*args, **kwargs):
+        raise FileNotFoundError("git not installed")
+
+    monkeypatch.setattr("memwiz.config.subprocess.run", raise_file_not_found)
+
+    config = build_config(cwd=workspace_directory, env={})
+
+    assert config.workspace_slug == "no-git-here"
+
+
 def test_workspace_slug_normalization_is_lowercase_kebab_case() -> None:
     assert normalize_workspace_slug("  Mixed_CASE.workspace 99  ") == "mixed-case-workspace-99"
 

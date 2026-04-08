@@ -7,7 +7,7 @@ name = "memwiz"
 version = "0.1"
 description = "Bootstrap contract for the memwiz CLI."
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.11"
 
 [project.scripts]
 memwiz = "memwiz.cli:main"

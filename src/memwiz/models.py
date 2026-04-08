@@ -314,6 +314,10 @@ class MemoryRecord:
 
         return payload
 
+    @property
+    def scope_key(self) -> tuple[str, Optional[str]]:
+        return (self.scope, self.workspace)
+
     def _validate_status_rules(self) -> None:
         if self.score_reasons is not None and self.score is None:
             raise ValueError("score_reasons require score")

@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "memwiz"
+version = "0.1"
+description = "Bootstrap contract for the memwiz CLI."
+readme = "README.md"
+requires-python = ">=3.9"
+
+[project.scripts]
+memwiz = "memwiz.cli:main"
+
+[tool.memwiz]
+skill_root = "src"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

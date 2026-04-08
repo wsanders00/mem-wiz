@@ -4,6 +4,7 @@ import argparse
 from pathlib import Path
 from typing import Iterable, Mapping, Optional
 
+from memwiz.commands.init import run as run_init
 from memwiz.config import MemwizConfig, build_config
 
 TOP_LEVEL_COMMANDS = (
@@ -26,19 +27,17 @@ def build_parser() -> argparse.ArgumentParser:
         prog="memwiz",
         description="memwiz command line interface",
     )
-    parser.add_argument(
-        "--root",
-        help="memory root directory",
-    )
-    parser.add_argument(
-        "--workspace",
-        help="workspace slug or source name",
-    )
+    add_shared_path_arguments(parser)
     subparsers = parser.add_subparsers(dest="command")
 
     for command in TOP_LEVEL_COMMANDS:
         subparser = subparsers.add_parser(command, help=f"{command} placeholder")
-        subparser.set_defaults(handler=_run_placeholder)
+        add_shared_path_arguments(subparser, suppress_default=True)
+
+        if command == "init":
+            subparser.set_defaults(handler=run_init)
+        else:
+            subparser.set_defaults(handler=_run_placeholder)
 
     return parser
 
@@ -46,6 +45,25 @@ def build_parser() -> argparse.ArgumentParser:
 def _run_placeholder(args: argparse.Namespace) -> int:
     print(f"{args.command} is not implemented yet.")
     return 0
+
+
+def add_shared_path_arguments(
+    parser: argparse.ArgumentParser,
+    *,
+    suppress_default: bool = False,
+) -> None:
+    argument_kwargs = {"default": argparse.SUPPRESS} if suppress_default else {}
+
+    parser.add_argument(
+        "--root",
+        help="memory root directory",
+        **argument_kwargs,
+    )
+    parser.add_argument(
+        "--workspace",
+        help="workspace slug or source name",
+        **argument_kwargs,
+    )
 
 
 def resolve_config(

@@ -5,6 +5,7 @@ from typing import Any
 
 import yaml
 
+from memwiz.fsops import write_text_atomic
 from memwiz.models import MemoryRecord
 
 
@@ -30,4 +31,4 @@ def read_record(path: Path) -> MemoryRecord:
 
 
 def write_record(path: Path, record: MemoryRecord) -> None:
-    path.write_text(dump_record(record), encoding="utf-8")
+    write_text_atomic(path, dump_record(record))

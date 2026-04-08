@@ -36,6 +36,12 @@ def test_shipped_skill_root_is_src() -> None:
     assert (REPO_ROOT / "src").is_dir()
 
 
+def test_memwiz_console_script_target_is_pinned() -> None:
+    target = _match_toml_value("project.scripts", "memwiz")
+
+    assert target == "memwiz.cli:main"
+
+
 def test_memwiz_console_script_target_resolves_to_callable() -> None:
     target = _match_toml_value("project.scripts", "memwiz")
     module_name, function_name = target.split(":", maxsplit=1)

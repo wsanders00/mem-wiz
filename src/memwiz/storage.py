@@ -89,6 +89,16 @@ def list_global_records(config: MemwizConfig, state: str) -> list[Path]:
     return _list_records(directory)
 
 
+def workspace_record_path(config: MemwizConfig, state: str, record_id: str) -> Path:
+    directory = _directory_for_state(config, state, WORKSPACE_STATES)
+    return _record_path(directory, record_id)
+
+
+def global_record_path(config: MemwizConfig, state: str, record_id: str) -> Path:
+    directory = _directory_for_state(config, state, GLOBAL_STATES)
+    return _record_path(directory, record_id)
+
+
 def _ensure_workspace_tree(config: MemwizConfig) -> None:
     config.workspace_inbox.mkdir(parents=True, exist_ok=True)
     config.workspace_canon.mkdir(parents=True, exist_ok=True)

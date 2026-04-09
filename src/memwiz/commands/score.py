@@ -7,10 +7,10 @@ from typing import Iterable
 
 from memwiz.clock import CommandClock, build_command_clock
 from memwiz.dedupe import is_near_duplicate, is_strong_duplicate
-from memwiz.models import MemoryRecord, Score, normalize_memory_id
+from memwiz.models import MemoryRecord, Score
 from memwiz.scoring import ScoreResult, evaluate_record
 from memwiz.serde import read_record, write_record
-from memwiz.storage import list_workspace_records
+from memwiz.storage import list_workspace_records, workspace_record_path
 
 
 def configure_parser(parser: argparse.ArgumentParser) -> None:
@@ -19,7 +19,11 @@ def configure_parser(parser: argparse.ArgumentParser) -> None:
 
 def run(args: argparse.Namespace, *, command_clock: CommandClock | None = None) -> int:
     clock = command_clock or build_command_clock()
-    record_path = workspace_candidate_path(args.config, args.id)
+    try:
+        record_path = workspace_candidate_path(args.config, args.id)
+    except ValueError:
+        print(f"Invalid memory id: {args.id}", file=sys.stderr)
+        return 2
 
     if not record_path.exists():
         print(f"Workspace candidate not found: {args.id}", file=sys.stderr)
@@ -42,8 +46,7 @@ def run(args: argparse.Namespace, *, command_clock: CommandClock | None = None) 
 
 
 def workspace_candidate_path(config, record_id: str) -> Path:
-    normalized = normalize_memory_id(record_id)
-    return config.workspace_inbox / f"{normalized}.yaml"
+    return workspace_record_path(config, "inbox", record_id)
 
 
 def _load_workspace_canon(config) -> list[MemoryRecord]:

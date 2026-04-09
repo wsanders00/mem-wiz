@@ -26,7 +26,11 @@ def configure_parser(parser: argparse.ArgumentParser) -> None:
 
 def run(args: argparse.Namespace, *, command_clock: CommandClock | None = None) -> int:
     clock = command_clock or build_command_clock()
-    record_path = workspace_candidate_path(args.config, args.id)
+    try:
+        record_path = workspace_candidate_path(args.config, args.id)
+    except ValueError:
+        print(f"Invalid memory id: {args.id}", file=sys.stderr)
+        return 2
 
     if not record_path.exists():
         print(f"Workspace candidate not found: {args.id}", file=sys.stderr)

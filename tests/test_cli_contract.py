@@ -49,11 +49,31 @@ def test_capture_help_lists_workspace_flow_flags(run_memwiz) -> None:
         assert flag in result.stdout
 
 
-def test_score_and_accept_help_include_id_flag(run_memwiz) -> None:
-    for command in ("score", "accept"):
+def test_score_accept_and_promote_help_include_id_flag(run_memwiz) -> None:
+    for command in ("score", "accept", "promote"):
         result = run_memwiz(command, "--help")
 
         assert result.returncode == 0
         assert "--id" in result.stdout
         assert "--root" in result.stdout
         assert "--workspace" in result.stdout
+
+
+def test_stateful_commands_reject_malformed_ids_without_tracebacks(
+    run_memwiz,
+    tmp_path,
+) -> None:
+    for command in ("score", "accept", "promote"):
+        result = run_memwiz(
+            command,
+            "--root",
+            str(tmp_path),
+            "--workspace",
+            "Task Space",
+            "--id",
+            "not-an-id",
+        )
+
+        assert result.returncode == 2
+        assert "invalid memory id" in result.stderr.lower()
+        assert "traceback" not in result.stderr.lower()

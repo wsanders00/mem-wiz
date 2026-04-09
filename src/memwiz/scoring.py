@@ -15,13 +15,21 @@ from memwiz.policy import (
 )
 
 
-SECRET_MARKERS = (
-    "secret",
-    "password",
-    "api key",
-    "token",
-    "sk-",
-    "access key",
+SECRET_PATTERNS = (
+    re.compile(r"-----begin [a-z ]+private key-----"),
+    re.compile(r"\bauthorization\s*:\s*bearer\s+[a-z0-9._~+/-]{16,}=*\b"),
+    re.compile(r"\bbearer\s+[a-z0-9._~+/-]{16,}=*\b"),
+    re.compile(r"\bsecret\s+(?:token|password|credential)\b"),
+    re.compile(
+        r"\b(?:[a-z0-9]+_)*(?:password|token|api_key|access_key|client_secret|secret_key|secret|access_token|refresh_token)\s*(?:=|:)\s*['\"]?[a-z0-9._~+/-]{8,}=*['\"]?"
+    ),
+    re.compile(
+        r"\b(?:password|secret(?:[ _-]?key)?|token|(?:access|refresh)[ _-]?token|(?:api|access|secret)[ _-]?key)\s*(?:=|:)\s*['\"]?[a-z0-9._~+/-]{8,}=*['\"]?"
+    ),
+    re.compile(
+        r"\b(?:password|secret(?:[ _-]?key)?|token|(?:access|refresh)[ _-]?token|(?:api|access|secret)[ _-]?key)\s+is\s*['\"]?(?:[a-z0-9._~+/-]{16,}=*|[a-z0-9._~+/-]{7,}[._~+/=][a-z0-9._~+/-]*)['\"]?"
+    ),
+    re.compile(r"\bsk-[a-z0-9-]{6,}\b"),
 )
 FILLER_MARKERS = (
     "thanks",
@@ -66,7 +74,7 @@ STRONG_EVIDENCE_SOURCES = {
 
 
 def contains_secret_like_content(*values: str) -> bool:
-    return _contains_any(_normalize_text(" ".join(value for value in values if value)), SECRET_MARKERS)
+    return _contains_secret_pattern(_normalize_secret_text(*values))
 
 
 @dataclass(frozen=True)
@@ -293,7 +301,13 @@ def _collect_disqualifiers(
     text = _record_text(record)
     disqualifiers: list[str] = []
 
-    if _contains_any(text, SECRET_MARKERS):
+    if contains_secret_like_content(
+        record.summary,
+        record.details or "",
+        *(record.tags or []),
+        *(item.ref for item in record.evidence),
+        *(item.note for item in record.evidence if item.note),
+    ):
         disqualifiers.append(DISQUALIFIERS["secret_like"])
 
     if _contains_any(text, FILLER_MARKERS):
@@ -343,6 +357,19 @@ def _mentions_workspace_context(record: MemoryRecord, text: str) -> bool:
 
 def _contains_any(text: str, phrases: Iterable[str]) -> bool:
     return any(phrase in text for phrase in phrases)
+
+
+def _contains_secret_pattern(text: str) -> bool:
+    return any(pattern.search(text) is not None for pattern in SECRET_PATTERNS)
+
+
+def _normalize_secret_text(*values: str) -> str:
+    normalized_values = [
+        re.sub(r"([a-z0-9])([A-Z])", r"\1_\2", value)
+        for value in values
+        if value
+    ]
+    return _normalize_text(" ".join(normalized_values))
 
 
 def _normalize_text(value: str) -> str:

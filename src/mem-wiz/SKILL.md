@@ -19,6 +19,7 @@ and promoting durable memories without letting storage bloat over time.
 - `search`: query accepted workspace and global canon with deterministic text matching.
 - `get`: print canonical YAML for one accepted memory by ID.
 - `prune`: archive structurally redundant accepted canon memories, with `--dry-run` preview support.
+- `doctor`: inspect root, workspace, lock, and canon/archive record health without mutating memory state.
 
 ## Runtime Notes
 

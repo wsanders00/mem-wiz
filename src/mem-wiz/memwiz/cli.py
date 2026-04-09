@@ -8,6 +8,8 @@ from memwiz.commands.accept import configure_parser as configure_accept_parser
 from memwiz.commands.accept import run as run_accept
 from memwiz.commands.capture import configure_parser as configure_capture_parser
 from memwiz.commands.capture import run as run_capture
+from memwiz.commands.doctor import configure_parser as configure_doctor_parser
+from memwiz.commands.doctor import run as run_doctor
 from memwiz.commands.get import configure_parser as configure_get_parser
 from memwiz.commands.get import run as run_get
 from memwiz.commands.init import run as run_init
@@ -44,6 +46,7 @@ COMMAND_HELP = {
     "search": "search accepted workspace and global memories",
     "get": "print one accepted memory by id",
     "prune": "archive structurally redundant accepted canon memories",
+    "doctor": "inspect memory root, workspace, and record health",
 }
 
 
@@ -85,6 +88,9 @@ def build_parser() -> argparse.ArgumentParser:
         elif command == "prune":
             configure_prune_parser(subparser)
             subparser.set_defaults(handler=run_prune)
+        elif command == "doctor":
+            configure_doctor_parser(subparser)
+            subparser.set_defaults(handler=run_doctor)
         else:
             subparser.set_defaults(handler=_run_placeholder)
 

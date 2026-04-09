@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from contextlib import contextmanager
+from dataclasses import dataclass
 import os
 from pathlib import Path
 import tempfile
@@ -14,8 +15,35 @@ class MemwizLockError(RuntimeError):
     """Raised when a mutating command cannot acquire the root lock."""
 
 
+@dataclass(frozen=True)
+class RootLockStatus:
+    state: str
+    path: Path
+
+
 def root_lock_path(root: Path) -> Path:
     return root / LOCK_FILENAME
+
+
+def inspect_root_lock(root: Path) -> RootLockStatus:
+    lock_path = root_lock_path(root)
+
+    if not lock_path.exists():
+        return RootLockStatus(state="missing", path=lock_path)
+
+    pid = _read_lock_pid(lock_path)
+
+    if pid is None:
+        return RootLockStatus(state="invalid", path=lock_path)
+
+    try:
+        os.kill(pid, 0)
+    except ProcessLookupError:
+        return RootLockStatus(state="stale", path=lock_path)
+    except PermissionError:
+        return RootLockStatus(state="active", path=lock_path)
+
+    return RootLockStatus(state="active", path=lock_path)
 
 
 @contextmanager
@@ -126,7 +154,7 @@ def _lock_is_stale(lock_path: Path) -> bool:
 def _read_lock_pid(lock_path: Path) -> Optional[int]:
     try:
         lock_text = lock_path.read_text(encoding="utf-8").strip()
-    except FileNotFoundError:
+    except (OSError, UnicodeError):
         return None
 
     if not lock_text:

@@ -13,6 +13,8 @@ from memwiz.commands.doctor import run as run_doctor
 from memwiz.commands.get import configure_parser as configure_get_parser
 from memwiz.commands.get import run as run_get
 from memwiz.commands.init import run as run_init
+from memwiz.commands.lint import configure_parser as configure_lint_parser
+from memwiz.commands.lint import run as run_lint
 from memwiz.commands.promote import configure_parser as configure_promote_parser
 from memwiz.commands.promote import run as run_promote
 from memwiz.commands.prune import configure_parser as configure_prune_parser
@@ -45,6 +47,7 @@ COMMAND_HELP = {
     "promote": "promote an accepted workspace memory into global canon",
     "search": "search accepted workspace and global memories",
     "get": "print one accepted memory by id",
+    "lint": "validate selected memory records for integrity conflicts",
     "prune": "archive structurally redundant accepted canon memories",
     "doctor": "inspect memory root, workspace, and record health",
 }
@@ -79,6 +82,9 @@ def build_parser() -> argparse.ArgumentParser:
         elif command == "promote":
             configure_promote_parser(subparser)
             subparser.set_defaults(handler=run_promote)
+        elif command == "lint":
+            configure_lint_parser(subparser)
+            subparser.set_defaults(handler=run_lint)
         elif command == "get":
             configure_get_parser(subparser)
             subparser.set_defaults(handler=run_get)

@@ -37,6 +37,13 @@ def test_root_help_does_not_label_doctor_as_placeholder(run_memwiz) -> None:
     assert "doctor placeholder" not in result.stdout
 
 
+def test_root_help_does_not_label_lint_as_placeholder(run_memwiz) -> None:
+    result = run_memwiz("--help")
+
+    assert result.returncode == 0
+    assert "lint placeholder" not in result.stdout
+
+
 def test_unknown_top_level_command_fails_with_parser_error(run_memwiz) -> None:
     result = run_memwiz("unknown-command")
 
@@ -153,4 +160,16 @@ def test_doctor_help_lists_shared_flags_only(run_memwiz) -> None:
         assert flag in result.stdout
 
     for flag in ("--scope", "--dry-run", "--id"):
+        assert flag not in result.stdout
+
+
+def test_lint_help_lists_scope_and_shared_flags(run_memwiz) -> None:
+    result = run_memwiz("lint", "--help")
+
+    assert result.returncode == 0
+
+    for flag in ("--scope", "--root", "--workspace"):
+        assert flag in result.stdout
+
+    for flag in ("--dry-run", "--id"):
         assert flag not in result.stdout

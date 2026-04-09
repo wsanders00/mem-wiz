@@ -17,6 +17,7 @@ and promoting durable memories without letting storage bloat over time.
 - `accept`: move an eligible workspace candidate into workspace canon.
 - `promote`: copy an eligible accepted workspace memory into global canon with provenance.
 - `lint`: validate selected workspace and global records for integrity and policy conflicts.
+- `compile`: build bounded `cache/digest.md` summaries from accepted workspace or global canon.
 - `search`: query accepted workspace and global canon with deterministic text matching.
 - `get`: print canonical YAML for one accepted memory by ID.
 - `prune`: archive structurally redundant accepted canon memories, with `--dry-run` preview support.

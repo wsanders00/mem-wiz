@@ -94,6 +94,34 @@ def test_archive_workspace_record_moves_record_by_memory_id_and_updates_metadata
     assert archived_record.decision.archive_reason == "superseded by newer workflow"
 
 
+def test_archive_global_record_moves_record_by_memory_id_and_updates_metadata(
+    tmp_path: Path,
+    make_fixed_clock,
+) -> None:
+    config = build_config(root=tmp_path / "mem-root", workspace="mem-wiz", env={})
+    storage.initialize_root(config)
+    record = make_global_accepted_record()
+    source_path = storage.write_global_canon(config, record)
+    command_clock = CommandClock(make_fixed_clock("2026-04-08T16:00:00Z"))
+
+    archived_path = storage.archive_global_record(
+        config,
+        record.id,
+        archive_reason="strong-duplicate-of:mem_20260408_aaaa1111",
+        command_clock=command_clock,
+    )
+
+    archived_record = read_record(archived_path)
+
+    assert archived_path == config.global_archive / f"{record.id}.yaml"
+    assert not source_path.exists()
+    assert archived_record.status == "archived"
+    assert archived_record.updated_at == "2026-04-08T16:00:00Z"
+    assert archived_record.decision is not None
+    assert archived_record.decision.archived_at == "2026-04-08T16:00:00Z"
+    assert archived_record.decision.archive_reason == "strong-duplicate-of:mem_20260408_aaaa1111"
+
+
 def make_workspace_captured_record(*, workspace: str) -> MemoryRecord:
     return MemoryRecord(
         schema_version=1,

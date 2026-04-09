@@ -18,6 +18,7 @@ and promoting durable memories without letting storage bloat over time.
 - `promote`: copy an eligible accepted workspace memory into global canon with provenance.
 - `search`: query accepted workspace and global canon with deterministic text matching.
 - `get`: print canonical YAML for one accepted memory by ID.
+- `prune`: archive structurally redundant accepted canon memories, with `--dry-run` preview support.
 
 ## Runtime Notes
 
@@ -25,3 +26,8 @@ and promoting durable memories without letting storage bloat over time.
 - The workspace slug comes from `--workspace`, `MEMWIZ_WORKSPACE`, or the current repo name.
 - Prefer concise, evidence-backed, durable memories over ephemeral task chatter.
 - Never store credentials or other secret-like content.
+
+## Bundle Layout
+
+- `scripts/memwiz` runs the CLI from an unpacked skill bundle.
+- `references/storage-layout.md` documents the shipped skill layout and the runtime memory tree.

@@ -59,24 +59,33 @@ def archive_workspace_record(
 ) -> Path:
     _ensure_workspace_tree(config)
     source_path = _record_path(config.workspace_canon, record_id)
-    record = read_record(source_path)
+    return _archive_record(
+        source_path,
+        config.workspace_archive,
+        archive_reason=archive_reason,
+        command_clock=command_clock,
+        expected_scope="workspace",
+        expected_workspace=config.workspace_slug,
+    )
 
-    _validate_workspace_record(record, status="accepted", workspace=config.workspace_slug)
 
-    timestamp = command_clock.timestamp()
-    decision_payload = record.decision.to_dict() if record.decision is not None else {}
-    decision_payload["archived_at"] = timestamp
-    decision_payload["archive_reason"] = archive_reason
-
-    archived_payload = record.to_dict()
-    archived_payload["status"] = "archived"
-    archived_payload["decision"] = decision_payload
-    archived_payload["updated_at"] = timestamp
-
-    archived_record = MemoryRecord.from_dict(archived_payload)
-    destination_path = _write_record(config.workspace_archive, archived_record)
-    source_path.unlink()
-    return destination_path
+def archive_global_record(
+    config: MemwizConfig,
+    record_id: str,
+    *,
+    archive_reason: str,
+    command_clock: CommandClock,
+) -> Path:
+    initialize_root(config)
+    source_path = _record_path(config.global_canon, record_id)
+    return _archive_record(
+        source_path,
+        config.global_archive,
+        archive_reason=archive_reason,
+        command_clock=command_clock,
+        expected_scope="global",
+        expected_workspace=None,
+    )
 
 
 def list_workspace_records(config: MemwizConfig, state: str) -> list[Path]:
@@ -152,3 +161,42 @@ def _validate_workspace_record(
 
     if record.status != status:
         raise ValueError(f"workspace storage requires {status} records")
+
+
+def _archive_record(
+    source_path: Path,
+    destination_dir: Path,
+    *,
+    archive_reason: str,
+    command_clock: CommandClock,
+    expected_scope: str,
+    expected_workspace: str | None,
+) -> Path:
+    record = read_record(source_path)
+
+    if record.status != "accepted":
+        raise ValueError("archive source record must be accepted")
+
+    if record.scope != expected_scope:
+        raise ValueError(f"archive source record must be {expected_scope}")
+
+    if expected_scope == "workspace" and record.workspace != expected_workspace:
+        raise ValueError("record workspace does not match the selected workspace")
+
+    if expected_scope == "global" and record.workspace is not None:
+        raise ValueError("global records must not include workspace")
+
+    timestamp = command_clock.timestamp()
+    decision_payload = record.decision.to_dict() if record.decision is not None else {}
+    decision_payload["archived_at"] = timestamp
+    decision_payload["archive_reason"] = archive_reason
+
+    archived_payload = record.to_dict()
+    archived_payload["status"] = "archived"
+    archived_payload["decision"] = decision_payload
+    archived_payload["updated_at"] = timestamp
+
+    archived_record = MemoryRecord.from_dict(archived_payload)
+    destination_path = _write_record(destination_dir, archived_record)
+    source_path.unlink()
+    return destination_path

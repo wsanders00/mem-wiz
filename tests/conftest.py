@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 import re
+import shutil
 import stat
 import subprocess
 import sys
@@ -32,6 +33,17 @@ def read_project_script_target(script_name: str = "memwiz") -> str:
 
     assert match is not None
     return match.group(1)
+
+
+@pytest.fixture(scope="session", autouse=True)
+def clean_bundle_generated_artifacts() -> None:
+    for path in BUNDLE_ROOT.rglob("*"):
+        if path.name in {"__pycache__", ".pytest_cache"} and path.is_dir():
+            shutil.rmtree(path)
+            continue
+
+        if path.name.endswith(".egg-info") and path.is_dir():
+            shutil.rmtree(path)
 
 
 @pytest.fixture

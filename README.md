@@ -7,9 +7,13 @@ skill bundle can be released from `src/mem-wiz/`.
   `AGENTS.md`, `pyproject.toml`, `tests/`, and local planning material under
   ignored `ai/`.
 - `src/mem-wiz/` is the intended release boundary. Release artifacts should
-  package the contents of this directory so unpacked bundles expose `SKILL.md`
-  and `memwiz/` at archive root.
+  package the contents of this directory so unpacked bundles expose `SKILL.md`,
+  `memwiz/`, `scripts/`, and `references/` at archive root.
 - `src/mem-wiz/memwiz/` contains the runtime Python package and the `memwiz`
   CLI entrypoint used for editable installs.
+- `src/mem-wiz/scripts/memwiz` is the bundle-local wrapper for invoking the CLI
+  from an unpacked skill bundle.
+- `src/mem-wiz/references/` holds on-demand reference material that keeps
+  `SKILL.md` concise.
 - `python3 scripts/build_skill_artifact.py` writes a zip under `dist/` using
   the contents of `src/mem-wiz/` as the archive root.

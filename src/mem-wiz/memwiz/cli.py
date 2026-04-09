@@ -13,6 +13,8 @@ from memwiz.commands.get import run as run_get
 from memwiz.commands.init import run as run_init
 from memwiz.commands.promote import configure_parser as configure_promote_parser
 from memwiz.commands.promote import run as run_promote
+from memwiz.commands.prune import configure_parser as configure_prune_parser
+from memwiz.commands.prune import run as run_prune
 from memwiz.commands.search import configure_parser as configure_search_parser
 from memwiz.commands.search import run as run_search
 from memwiz.commands.score import configure_parser as configure_score_parser
@@ -33,6 +35,17 @@ TOP_LEVEL_COMMANDS = (
     "doctor",
 )
 
+COMMAND_HELP = {
+    "init": "initialize the memory root and shared global directories",
+    "capture": "capture a workspace memory candidate",
+    "score": "score a captured workspace memory candidate",
+    "accept": "accept an eligible workspace memory into canon",
+    "promote": "promote an accepted workspace memory into global canon",
+    "search": "search accepted workspace and global memories",
+    "get": "print one accepted memory by id",
+    "prune": "archive structurally redundant accepted canon memories",
+}
+
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
@@ -43,7 +56,10 @@ def build_parser() -> argparse.ArgumentParser:
     subparsers = parser.add_subparsers(dest="command")
 
     for command in TOP_LEVEL_COMMANDS:
-        subparser = subparsers.add_parser(command, help=f"{command} placeholder")
+        subparser = subparsers.add_parser(
+            command,
+            help=COMMAND_HELP.get(command, f"{command} placeholder"),
+        )
         add_shared_path_arguments(subparser, suppress_default=True)
 
         if command == "init":
@@ -66,6 +82,9 @@ def build_parser() -> argparse.ArgumentParser:
         elif command == "search":
             configure_search_parser(subparser)
             subparser.set_defaults(handler=run_search)
+        elif command == "prune":
+            configure_prune_parser(subparser)
+            subparser.set_defaults(handler=run_prune)
         else:
             subparser.set_defaults(handler=_run_placeholder)
 

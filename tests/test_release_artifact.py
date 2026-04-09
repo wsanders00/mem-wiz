@@ -21,6 +21,8 @@ def test_build_skill_artifact_uses_bundle_contents_as_archive_root(tmp_path: Pat
 
     assert "SKILL.md" in names
     assert "memwiz/cli.py" in names
+    assert "references/storage-layout.md" in names
+    assert "scripts/memwiz" in names
     assert not any(name.startswith("mem-wiz/") for name in names)
 
 
@@ -29,8 +31,12 @@ def test_build_skill_artifact_excludes_dev_only_paths_anywhere_in_tree(tmp_path:
     bundle_root = repo_root / "src" / "mem-wiz"
     nested_root = bundle_root / "memwiz" / "internal"
     (bundle_root / "memwiz").mkdir(parents=True)
+    (bundle_root / "references").mkdir(parents=True)
+    (bundle_root / "scripts").mkdir(parents=True)
     nested_root.mkdir(parents=True)
     (bundle_root / "SKILL.md").write_text("skill", encoding="utf-8")
+    (bundle_root / "references" / "storage-layout.md").write_text("reference", encoding="utf-8")
+    (bundle_root / "scripts" / "memwiz").write_text("#!/bin/sh\n", encoding="utf-8")
     (bundle_root / "memwiz" / "__init__.py").write_text("", encoding="utf-8")
     (nested_root / "keep.txt").write_text("keep", encoding="utf-8")
     (nested_root / "tests").mkdir()
@@ -55,6 +61,8 @@ def test_build_skill_artifact_excludes_dev_only_paths_anywhere_in_tree(tmp_path:
     assert "SKILL.md" in names
     assert "memwiz/__init__.py" in names
     assert "memwiz/internal/keep.txt" in names
+    assert "references/storage-layout.md" in names
+    assert "scripts/memwiz" in names
     assert "memwiz/internal/tests/tmp.txt" not in names
     assert "memwiz/internal/ai/note.md" not in names
     assert "memwiz/internal/.pytest_cache/state" not in names
@@ -91,7 +99,11 @@ def test_build_skill_artifact_rejects_output_dir_when_it_is_inside_bundle_root(
     bundle_root = repo_root / "src" / "mem-wiz"
     output_dir = bundle_root / "artifacts-test"
     (bundle_root / "memwiz").mkdir(parents=True)
+    (bundle_root / "references").mkdir(parents=True)
+    (bundle_root / "scripts").mkdir(parents=True)
     (bundle_root / "SKILL.md").write_text("skill", encoding="utf-8")
+    (bundle_root / "references" / "storage-layout.md").write_text("reference", encoding="utf-8")
+    (bundle_root / "scripts" / "memwiz").write_text("#!/bin/sh\n", encoding="utf-8")
     (bundle_root / "memwiz" / "__init__.py").write_text("", encoding="utf-8")
     (bundle_root / "memwiz" / "keep.txt").write_text("keep", encoding="utf-8")
     (repo_root / "pyproject.toml").write_text('[project]\nversion = "2.0"\n', encoding="utf-8")
@@ -106,7 +118,11 @@ def test_build_skill_artifact_rejects_bundle_root_as_output_dir(
     repo_root = tmp_path / "repo"
     bundle_root = repo_root / "src" / "mem-wiz"
     (bundle_root / "memwiz").mkdir(parents=True)
+    (bundle_root / "references").mkdir(parents=True)
+    (bundle_root / "scripts").mkdir(parents=True)
     (bundle_root / "SKILL.md").write_text("skill", encoding="utf-8")
+    (bundle_root / "references" / "storage-layout.md").write_text("reference", encoding="utf-8")
+    (bundle_root / "scripts" / "memwiz").write_text("#!/bin/sh\n", encoding="utf-8")
     (bundle_root / "memwiz" / "__init__.py").write_text("", encoding="utf-8")
     (bundle_root / "memwiz" / "keep.txt").write_text("keep", encoding="utf-8")
     (repo_root / "pyproject.toml").write_text('[project]\nversion = "2.1"\n', encoding="utf-8")

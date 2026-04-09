@@ -1,0 +1,13 @@
+#!/bin/sh
+set -eu
+
+SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+SKILL_ROOT=$(CDPATH= cd -- "$SCRIPT_DIR/.." && pwd)
+
+if [ -n "${PYTHONPATH:-}" ]; then
+    export PYTHONPATH="$SKILL_ROOT:$PYTHONPATH"
+else
+    export PYTHONPATH="$SKILL_ROOT"
+fi
+
+exec python3 -m memwiz.cli "$@"

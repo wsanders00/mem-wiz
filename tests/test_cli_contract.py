@@ -23,6 +23,13 @@ def test_root_invocation_without_args_shows_help(run_memwiz) -> None:
         assert command in result.stdout
 
 
+def test_root_help_does_not_label_prune_as_placeholder(run_memwiz) -> None:
+    result = run_memwiz("--help")
+
+    assert result.returncode == 0
+    assert "prune placeholder" not in result.stdout
+
+
 def test_unknown_top_level_command_fails_with_parser_error(run_memwiz) -> None:
     result = run_memwiz("unknown-command")
 
@@ -118,4 +125,13 @@ def test_get_help_lists_id_scope_and_shared_flags(run_memwiz) -> None:
     assert result.returncode == 0
 
     for flag in ("--id", "--scope", "--root", "--workspace"):
+        assert flag in result.stdout
+
+
+def test_prune_help_lists_scope_dry_run_and_shared_flags(run_memwiz) -> None:
+    result = run_memwiz("prune", "--help")
+
+    assert result.returncode == 0
+
+    for flag in ("--scope", "--dry-run", "--root", "--workspace"):
         assert flag in result.stdout

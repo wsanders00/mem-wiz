@@ -4,7 +4,13 @@ import argparse
 from pathlib import Path
 from typing import Iterable, Mapping, Optional
 
+from memwiz.commands.accept import configure_parser as configure_accept_parser
+from memwiz.commands.accept import run as run_accept
+from memwiz.commands.capture import configure_parser as configure_capture_parser
+from memwiz.commands.capture import run as run_capture
 from memwiz.commands.init import run as run_init
+from memwiz.commands.score import configure_parser as configure_score_parser
+from memwiz.commands.score import run as run_score
 from memwiz.config import MemwizConfig, build_config
 
 TOP_LEVEL_COMMANDS = (
@@ -36,6 +42,15 @@ def build_parser() -> argparse.ArgumentParser:
 
         if command == "init":
             subparser.set_defaults(handler=run_init)
+        elif command == "capture":
+            configure_capture_parser(subparser)
+            subparser.set_defaults(handler=run_capture)
+        elif command == "score":
+            configure_score_parser(subparser)
+            subparser.set_defaults(handler=run_score)
+        elif command == "accept":
+            configure_accept_parser(subparser)
+            subparser.set_defaults(handler=run_accept)
         else:
             subparser.set_defaults(handler=_run_placeholder)
 

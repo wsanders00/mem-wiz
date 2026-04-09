@@ -65,6 +65,10 @@ STRONG_EVIDENCE_SOURCES = {
 }
 
 
+def contains_secret_like_content(*values: str) -> bool:
+    return _contains_any(_normalize_text(" ".join(value for value in values if value)), SECRET_MARKERS)
+
+
 @dataclass(frozen=True)
 class FactorScores:
     reuse: float

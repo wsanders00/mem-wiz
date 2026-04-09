@@ -2,7 +2,11 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
-from typing import Optional, Protocol, Union
+import os
+from typing import Mapping, Optional, Protocol, Union
+
+
+FIXED_NOW_ENV = "MEMWIZ_FIXED_NOW"
 
 
 class Clock(Protocol):
@@ -42,6 +46,16 @@ class CommandClock:
             self._timestamp = now_timestamp(self.clock)
 
         return self._timestamp
+
+
+def build_command_clock(env: Optional[Mapping[str, str]] = None) -> CommandClock:
+    environment = env if env is not None else os.environ
+    fixed_now = environment.get(FIXED_NOW_ENV)
+
+    if fixed_now:
+        return CommandClock(FixedClock.from_value(fixed_now))
+
+    return CommandClock()
 
 
 def now_timestamp(clock: Optional[Clock] = None) -> str:

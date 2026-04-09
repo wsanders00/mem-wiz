@@ -11,10 +11,12 @@ import pytest
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-SRC_ROOT = REPO_ROOT / "src"
+BUNDLE_ROOT = REPO_ROOT / "src" / "mem-wiz"
 
-if str(SRC_ROOT) not in sys.path:
-    sys.path.insert(0, str(SRC_ROOT))
+sys.dont_write_bytecode = True
+
+if str(BUNDLE_ROOT) not in sys.path:
+    sys.path.insert(0, str(BUNDLE_ROOT))
 
 from memwiz.clock import FixedClock
 
@@ -53,8 +55,9 @@ def run_memwiz(tmp_path_factory: pytest.TempPathFactory):
 
     env = os.environ.copy()
     env["PATH"] = os.pathsep.join([str(bin_dir), env.get("PATH", "")])
+    env["PYTHONDONTWRITEBYTECODE"] = "1"
     env["PYTHONPATH"] = os.pathsep.join(
-        [str(SRC_ROOT), env.get("PYTHONPATH", "")]
+        [str(BUNDLE_ROOT), env.get("PYTHONPATH", "")]
     ).rstrip(os.pathsep)
 
     def _run(*args: str) -> subprocess.CompletedProcess[str]:

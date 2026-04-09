@@ -16,6 +16,8 @@ and promoting durable memories without letting storage bloat over time.
 - `score`: evaluate workspace candidates for workspace retention fitness.
 - `accept`: move an eligible workspace candidate into workspace canon.
 - `promote`: copy an eligible accepted workspace memory into global canon with provenance.
+- `search`: query accepted workspace and global canon with deterministic text matching.
+- `get`: print canonical YAML for one accepted memory by ID.
 
 ## Runtime Notes
 

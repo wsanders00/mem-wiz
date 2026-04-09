@@ -8,9 +8,13 @@ from memwiz.commands.accept import configure_parser as configure_accept_parser
 from memwiz.commands.accept import run as run_accept
 from memwiz.commands.capture import configure_parser as configure_capture_parser
 from memwiz.commands.capture import run as run_capture
+from memwiz.commands.get import configure_parser as configure_get_parser
+from memwiz.commands.get import run as run_get
 from memwiz.commands.init import run as run_init
 from memwiz.commands.promote import configure_parser as configure_promote_parser
 from memwiz.commands.promote import run as run_promote
+from memwiz.commands.search import configure_parser as configure_search_parser
+from memwiz.commands.search import run as run_search
 from memwiz.commands.score import configure_parser as configure_score_parser
 from memwiz.commands.score import run as run_score
 from memwiz.config import MemwizConfig, build_config
@@ -56,6 +60,12 @@ def build_parser() -> argparse.ArgumentParser:
         elif command == "promote":
             configure_promote_parser(subparser)
             subparser.set_defaults(handler=run_promote)
+        elif command == "get":
+            configure_get_parser(subparser)
+            subparser.set_defaults(handler=run_get)
+        elif command == "search":
+            configure_search_parser(subparser)
+            subparser.set_defaults(handler=run_search)
         else:
             subparser.set_defaults(handler=_run_placeholder)
 

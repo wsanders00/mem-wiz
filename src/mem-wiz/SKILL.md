@@ -1,3 +1,8 @@
+---
+name: mem-wiz
+description: Use when working with the mem-wiz local memory skill and CLI, including capture, remember, review, promotion, and context workflows in a repository or workspace
+---
+
 # mem-wiz
 
 mem-wiz is an agent-agnostic memory skill for lightweight long-term memory.

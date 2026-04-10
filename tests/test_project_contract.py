@@ -81,8 +81,9 @@ def test_releasing_doc_exists_and_mentions_version_tags_and_artifacts() -> None:
     assert releasing_path.is_file()
 
     releasing_text = releasing_path.read_text(encoding="utf-8")
+    project_version = PYPROJECT["project"]["version"]
 
-    for phrase in ("version bump", "v0.1.0", "mem-wiz-skill-", ".sha256"):
+    for phrase in ("version bump", f"v{project_version}", "mem-wiz-skill-", ".sha256"):
         assert phrase in releasing_text
 
 

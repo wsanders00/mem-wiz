@@ -27,6 +27,20 @@ def test_build_skill_artifact_uses_bundle_contents_as_archive_root(tmp_path: Pat
     assert not any(name.startswith("mem-wiz/") for name in names)
 
 
+def test_build_skill_artifact_preserves_valid_skill_frontmatter(tmp_path: Path) -> None:
+    artifact_path = build_skill_artifact(output_dir=tmp_path)
+
+    with ZipFile(artifact_path) as archive:
+        skill_text = archive.read("SKILL.md").decode("utf-8")
+
+    lines = skill_text.splitlines()
+
+    assert lines[0] == "---"
+    assert lines[1].startswith("name: ")
+    assert lines[2].startswith("description: Use when")
+    assert lines[3] == "---"
+
+
 def test_build_skill_artifact_excludes_dev_only_paths_anywhere_in_tree(tmp_path: Path) -> None:
     repo_root = tmp_path / "repo"
     bundle_root = repo_root / "src" / "mem-wiz"

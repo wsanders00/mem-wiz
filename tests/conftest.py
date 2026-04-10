@@ -7,6 +7,7 @@ import stat
 import subprocess
 import sys
 from pathlib import Path
+from typing import Mapping
 
 import pytest
 
@@ -72,13 +73,24 @@ def run_memwiz(tmp_path_factory: pytest.TempPathFactory):
         [str(BUNDLE_ROOT), env.get("PYTHONPATH", "")]
     ).rstrip(os.pathsep)
 
-    def _run(*args: str) -> subprocess.CompletedProcess[str]:
+    def _run(
+        *args: str,
+        env_overrides: Mapping[str, str] | None = None,
+        cwd: Path | None = None,
+    ) -> subprocess.CompletedProcess[str]:
+        call_env = env.copy()
+
+        if env_overrides:
+            call_env.update(env_overrides)
+
+        call_cwd = cwd if cwd is not None else REPO_ROOT
+
         return subprocess.run(
             ["memwiz", *args],
             capture_output=True,
             text=True,
-            env=env,
-            cwd=REPO_ROOT,
+            env=call_env,
+            cwd=call_cwd,
         )
 
     return _run

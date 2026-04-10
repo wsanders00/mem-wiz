@@ -19,7 +19,7 @@ def configure_parser(parser: argparse.ArgumentParser) -> None:
     parser.add_argument(
         "--scope",
         choices=("workspace", "global", "all"),
-        default="all",
+        default="workspace",
     )
 
 

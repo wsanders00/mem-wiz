@@ -17,3 +17,12 @@ skill bundle can be released from `src/mem-wiz/`.
   `SKILL.md` concise.
 - `python3 scripts/build_skill_artifact.py` writes a zip under `dist/` using
   the contents of `src/mem-wiz/` as the archive root.
+- CLI scope defaults are part of the v1 contract: `get`, `lint`, `compile`,
+  and `prune` default to the selected workspace; `search` defaults to selected
+  workspace plus global; `--scope all` means selected workspace plus global
+  only.
+- Releases follow SimVer and should only include docs that match the current
+  repository state. Keep local planning notes under ignored `ai/`.
+- When running directly against `src/mem-wiz/`, prefer
+  `PYTHONDONTWRITEBYTECODE=1` to avoid leaving `__pycache__/` under the shipped
+  bundle tree.

@@ -1,3 +1,11 @@
+from pathlib import Path
+
+from memwiz.config import MemwizConfig, build_config
+from memwiz.models import Decision, EvidenceItem, MemoryRecord, Provenance, Score
+from memwiz.serde import dump_record
+from memwiz.storage import write_global_canon, write_workspace_canon
+
+
 TOP_LEVEL_COMMANDS = (
     "init",
     "capture",
@@ -192,3 +200,445 @@ def test_compile_help_lists_scope_and_shared_flags(run_memwiz) -> None:
 
     for flag in ("--dry-run", "--id"):
         assert flag not in result.stdout
+
+
+def test_search_defaults_to_selected_workspace_plus_global_only(
+    run_memwiz,
+    tmp_path,
+) -> None:
+    config = make_config(tmp_path)
+    other_config = build_config(root=config.root, workspace="Other Space", env={})
+    write_workspace_canon(
+        config,
+        accepted_workspace_record(
+            "mem_20260408_11111111",
+            workspace="task-space",
+            summary="Workflow review guide",
+        ),
+    )
+    write_workspace_canon(
+        other_config,
+        accepted_workspace_record(
+            "mem_20260408_22222222",
+            workspace="other-space",
+            summary="Workflow review for another workspace",
+        ),
+    )
+    write_global_canon(
+        config,
+        accepted_global_record(
+            "mem_20260408_33333333",
+            summary="Workflow review defaults",
+        ),
+    )
+
+    result = run_memwiz(
+        "search",
+        "workflow review",
+        "--root",
+        str(config.root),
+        "--workspace",
+        "Task Space",
+    )
+
+    assert result.returncode == 0
+    assert result.stdout == (
+        "mem_20260408_11111111\tworkspace\ttask-space\tworkflow\tWorkflow review guide\n"
+        "mem_20260408_33333333\tglobal\t-\tworkflow\tWorkflow review defaults\n"
+    )
+    assert "other-space" not in result.stdout
+
+
+def test_get_defaults_to_workspace_scope(run_memwiz, tmp_path) -> None:
+    config = make_config(tmp_path)
+    write_global_canon(
+        config,
+        accepted_global_record("mem_20260408_11111111"),
+    )
+
+    result = run_memwiz(
+        "get",
+        "--id",
+        "mem_20260408_11111111",
+        "--root",
+        str(config.root),
+        "--workspace",
+        "Task Space",
+    )
+
+    assert result.returncode == 3
+    assert result.stdout == ""
+    assert result.stderr == "Accepted memory not found: mem_20260408_11111111\n"
+
+
+def test_lint_defaults_to_workspace_scope(run_memwiz, tmp_path) -> None:
+    config = make_config(tmp_path)
+    invalid_global = config.global_canon / "mem_20260408_11111111.yaml"
+    invalid_global.parent.mkdir(parents=True, exist_ok=True)
+    invalid_global.write_text(
+        dump_record(
+            accepted_workspace_record(
+                "mem_20260408_11111111",
+                workspace="task-space",
+            )
+        ),
+        encoding="utf-8",
+    )
+
+    result = run_memwiz(
+        "lint",
+        "--root",
+        str(config.root),
+        "--workspace",
+        "Task Space",
+    )
+
+    assert result.returncode == 0
+    assert result.stdout == "No lint findings.\n"
+    assert result.stderr == ""
+
+
+def test_compile_defaults_to_workspace_scope(run_memwiz, tmp_path) -> None:
+    config = make_config(tmp_path)
+    write_workspace_canon(
+        config,
+        accepted_workspace_record("mem_20260408_11111111"),
+    )
+    invalid_global = config.global_canon / "mem_20260408_deadbeef.yaml"
+    invalid_global.parent.mkdir(parents=True, exist_ok=True)
+    invalid_global.write_text("summary: [broken\n", encoding="utf-8")
+
+    result = run_memwiz(
+        "compile",
+        "--root",
+        str(config.root),
+        "--workspace",
+        "Task Space",
+    )
+
+    assert result.returncode == 0
+    assert result.stdout == (
+        f"compiled\tworkspace\ttask-space\t{config.workspace_cache / 'digest.md'}\t1\t0\n"
+    )
+    assert result.stderr == ""
+    assert (config.workspace_cache / "digest.md").exists()
+    assert not (config.global_cache / "digest.md").exists()
+
+
+def test_prune_defaults_to_workspace_scope(run_memwiz, tmp_path) -> None:
+    config = make_config(tmp_path)
+    write_workspace_canon(
+        config,
+        accepted_workspace_record(
+            "mem_20260408_bbb22222",
+            summary="Workspace duplicate baseline summary.",
+            evidence_score=1.0,
+        ),
+    )
+    write_workspace_canon(
+        config,
+        accepted_workspace_record(
+            "mem_20260408_aaa11111",
+            summary="Workspace duplicate baseline summary!",
+            evidence_score=0.1,
+        ),
+    )
+    write_global_canon(
+        config,
+        accepted_global_record(
+            "mem_20260408_ddd44444",
+            summary="Global duplicate baseline summary.",
+            source_memory_id="mem_20260408_deadbeef",
+            evidence_score=1.0,
+        ),
+    )
+    write_global_canon(
+        config,
+        accepted_global_record(
+            "mem_20260408_ccc33333",
+            summary="Global duplicate baseline summary!",
+            source_memory_id="mem_20260408_cafefeed",
+            evidence_score=0.1,
+        ),
+    )
+
+    result = run_memwiz(
+        "prune",
+        "--root",
+        str(config.root),
+        "--workspace",
+        "Task Space",
+    )
+
+    assert result.returncode == 0
+    assert result.stdout == (
+        "archived\t"
+        "mem_20260408_aaa11111\tworkspace\ttask-space\tstrong-duplicate-of:mem_20260408_bbb22222\n"
+    )
+    assert result.stderr == ""
+    assert (config.workspace_archive / "mem_20260408_aaa11111.yaml").exists()
+    assert (config.global_canon / "mem_20260408_ccc33333.yaml").exists()
+
+
+def test_scope_all_is_limited_to_selected_workspace_plus_global(
+    run_memwiz,
+    tmp_path,
+) -> None:
+    config = make_config(tmp_path)
+    other_config = build_config(root=config.root, workspace="Other Space", env={})
+    write_workspace_canon(
+        config,
+        accepted_workspace_record("mem_20260408_11111111"),
+    )
+    write_global_canon(
+        config,
+        accepted_global_record("mem_20260408_22222222"),
+    )
+    invalid_other = other_config.workspace_canon / "mem_20260408_33333333.yaml"
+    invalid_other.parent.mkdir(parents=True, exist_ok=True)
+    invalid_other.write_text("summary: [broken\n", encoding="utf-8")
+
+    result = run_memwiz(
+        "lint",
+        "--scope",
+        "all",
+        "--root",
+        str(config.root),
+        "--workspace",
+        "Task Space",
+    )
+
+    assert result.returncode == 0
+    assert result.stdout == "No lint findings.\n"
+    assert result.stderr == ""
+
+
+def test_lint_scope_all_fails_when_either_selected_scope_has_findings(
+    run_memwiz,
+    tmp_path,
+) -> None:
+    config = make_config(tmp_path)
+    write_workspace_canon(
+        config,
+        accepted_workspace_record("mem_20260408_11111111"),
+    )
+    invalid_global = config.global_canon / "mem_20260408_deadbeef.yaml"
+    invalid_global.parent.mkdir(parents=True, exist_ok=True)
+    invalid_global.write_text("summary: [broken\n", encoding="utf-8")
+
+    result = run_memwiz(
+        "lint",
+        "--scope",
+        "all",
+        "--root",
+        str(config.root),
+        "--workspace",
+        "Task Space",
+    )
+
+    assert result.returncode == 2
+    assert str(invalid_global) in result.stdout
+    assert result.stderr == ""
+
+
+def test_compile_scope_all_is_all_or_nothing(run_memwiz, tmp_path) -> None:
+    config = make_config(tmp_path)
+    write_workspace_canon(
+        config,
+        accepted_workspace_record("mem_20260408_11111111"),
+    )
+    invalid_global = config.global_canon / "mem_20260408_deadbeef.yaml"
+    invalid_global.parent.mkdir(parents=True, exist_ok=True)
+    invalid_global.write_text("summary: [broken\n", encoding="utf-8")
+
+    result = run_memwiz(
+        "compile",
+        "--scope",
+        "all",
+        "--root",
+        str(config.root),
+        "--workspace",
+        "Task Space",
+    )
+
+    assert result.returncode == 2
+    assert result.stdout == ""
+    assert str(invalid_global) in result.stderr
+    assert not (config.workspace_cache / "digest.md").exists()
+    assert not (config.global_cache / "digest.md").exists()
+
+
+def test_prune_scope_all_is_atomic(run_memwiz, tmp_path) -> None:
+    config = make_config(tmp_path)
+    write_workspace_canon(
+        config,
+        accepted_workspace_record(
+            "mem_20260408_bbb22222",
+            summary="Workspace duplicate baseline summary.",
+            evidence_score=1.0,
+        ),
+    )
+    write_workspace_canon(
+        config,
+        accepted_workspace_record(
+            "mem_20260408_aaa11111",
+            summary="Workspace duplicate baseline summary!",
+            evidence_score=0.1,
+        ),
+    )
+    invalid_global = config.global_canon / "mem_20260408_deadbeef.yaml"
+    invalid_global.parent.mkdir(parents=True, exist_ok=True)
+    invalid_global.write_text("summary: [broken\n", encoding="utf-8")
+
+    result = run_memwiz(
+        "prune",
+        "--scope",
+        "all",
+        "--root",
+        str(config.root),
+        "--workspace",
+        "Task Space",
+    )
+
+    assert result.returncode == 5
+    assert result.stdout == ""
+    assert str(invalid_global) in result.stderr
+    assert (config.workspace_canon / "mem_20260408_aaa11111.yaml").exists()
+    assert not (config.workspace_archive / "mem_20260408_aaa11111.yaml").exists()
+
+
+def test_representative_exit_code_mapping_for_one_two_three_and_four(
+    run_memwiz,
+    tmp_path,
+) -> None:
+    config = make_config(tmp_path)
+    workspace_record = accepted_workspace_record("mem_20260408_11111111")
+    global_record = accepted_global_record("mem_20260408_11111111")
+    write_workspace_canon(config, workspace_record)
+    write_global_canon(config, global_record)
+
+    doctor_result = run_memwiz(
+        "doctor",
+        "--root",
+        str(tmp_path / "missing-root"),
+        "--workspace",
+        "Task Space",
+    )
+    invalid_id_result = run_memwiz(
+        "get",
+        "--id",
+        "not-an-id",
+        "--root",
+        str(config.root),
+        "--workspace",
+        "Task Space",
+    )
+    missing_id_result = run_memwiz(
+        "get",
+        "--id",
+        "mem_20260408_22222222",
+        "--root",
+        str(config.root),
+        "--workspace",
+        "Task Space",
+        "--scope",
+        "workspace",
+    )
+    ambiguity_result = run_memwiz(
+        "get",
+        "--id",
+        "mem_20260408_11111111",
+        "--scope",
+        "all",
+        "--root",
+        str(config.root),
+        "--workspace",
+        "Task Space",
+    )
+
+    assert doctor_result.returncode == 1
+    assert "root-missing" in doctor_result.stdout
+    assert invalid_id_result.returncode == 2
+    assert missing_id_result.returncode == 3
+    assert ambiguity_result.returncode == 4
+
+
+def make_config(tmp_path) -> MemwizConfig:
+    return build_config(root=tmp_path / "mem-root", workspace="Task Space", env={})
+
+
+def accepted_workspace_record(
+    record_id: str,
+    *,
+    workspace: str = "task-space",
+    summary: str = "Workflow review guide",
+    evidence_score: float = 0.8,
+    updated_at: str = "2026-04-08T10:00:00Z",
+) -> MemoryRecord:
+    return MemoryRecord(
+        schema_version=1,
+        id=record_id,
+        scope="workspace",
+        workspace=workspace,
+        kind="workflow",
+        summary=summary,
+        details="Workflow review details remain durable across sessions.",
+        evidence=[EvidenceItem(source="doc", ref="docs/review.md")],
+        status="accepted",
+        score=Score(
+            reuse=0.8,
+            specificity=0.8,
+            durability=0.8,
+            evidence=evidence_score,
+            novelty=0.8,
+            scope_fit=0.8,
+            retain=0.8,
+        ),
+        tags=["review"],
+        decision=Decision(accepted_at="2026-04-08T09:00:00Z"),
+        score_reasons=["retain-score:0.80"],
+        created_at="2026-04-08T09:00:00Z",
+        updated_at=updated_at,
+    )
+
+
+def accepted_global_record(
+    record_id: str,
+    *,
+    summary: str = "Workflow review defaults",
+    source_memory_id: str = "mem_20260408_aaaaaaaa",
+    evidence_score: float = 0.8,
+    updated_at: str = "2026-04-08T10:00:00Z",
+) -> MemoryRecord:
+    return MemoryRecord(
+        schema_version=1,
+        id=record_id,
+        scope="global",
+        kind="workflow",
+        summary=summary,
+        details="Portable review defaults remain useful across repositories.",
+        evidence=[EvidenceItem(source="doc", ref="docs/review.md")],
+        status="accepted",
+        score=Score(
+            reuse=0.8,
+            specificity=0.8,
+            durability=0.8,
+            evidence=evidence_score,
+            novelty=0.8,
+            scope_fit=0.8,
+            retain=0.8,
+            promote=0.8,
+        ),
+        tags=["review"],
+        decision=Decision(accepted_at="2026-04-08T09:00:00Z"),
+        score_reasons=["retain-score:0.80", "promote-score:0.80"],
+        provenance=Provenance(
+            source_scope="workspace",
+            source_workspace="task-space",
+            source_memory_id=source_memory_id,
+            promoted_at="2026-04-08T09:00:00Z",
+            promotion_reason="portable review defaults",
+        ),
+        created_at="2026-04-08T09:00:00Z",
+        updated_at=updated_at,
+    )

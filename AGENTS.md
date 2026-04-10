@@ -8,7 +8,7 @@ Treat `src/mem-wiz/` as shipped runtime surface only. Root-level docs, packaging
 ## Build, Test, and Development Commands
 - `python3 -m venv .venv`: create a local Python 3.11+ development environment.
 - `.venv/bin/python -m pip install -e . pytest`: install the editable `memwiz` CLI and test tools.
-- `.venv/bin/python -m pytest -q`: run the full automated test suite.
+- `PYTHONDONTWRITEBYTECODE=1 .venv/bin/python -m pytest -q`: run the full automated test suite without leaving `__pycache__/` under `src/mem-wiz/`.
 - `.venv/bin/python -m pytest tests/test_promote.py -q`: run a focused test slice while iterating.
 - `.venv/bin/memwiz --help`: inspect the CLI surface after editable install.
 
@@ -24,4 +24,4 @@ Use `pytest` for all coverage. Add or update tests with every behavior change, e
 History uses Conventional Commit prefixes such as `feat:`, `fix:`, `docs:`, and `chore:`. Keep subjects imperative and scoped to one behavior change. Pull requests should summarize user-visible changes, call out CLI or schema impacts, and include the verification command used, usually `python3 -m pytest -q`. Releases follow SimVer.
 
 ## Agent-Specific Notes
-This repository is an agent-agnostic memory skill. Preserve the current model: workspace capture is explicit, global memory promotion is explicit, and memory should stay lightweight rather than grow without bound.
+This repository is an agent-agnostic memory skill. Preserve the current model: workspace capture is explicit, global memory promotion is explicit, and memory should stay lightweight rather than grow without bound. Preserve the v1 CLI scope contract: `get`, `lint`, `compile`, and `prune` default to workspace, `search` spans the selected workspace plus global, and `--scope all` never scans every workspace under a root.

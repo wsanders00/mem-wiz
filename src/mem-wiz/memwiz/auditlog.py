@@ -45,6 +45,8 @@ def read_audit_events(
     workspace: str | None = None,
     outcome: str | None = None,
     needs_user: bool | None = None,
+    reason_code: str | None = None,
+    limit: int | None = None,
 ) -> list[dict[str, Any]]:
     normalized_workspace = (
         normalize_workspace_slug(workspace)
@@ -78,7 +80,13 @@ def read_audit_events(
             if needs_user is not None and payload.get("needs_user") is not needs_user:
                 continue
 
+            if reason_code is not None and reason_code not in payload.get("reason_codes", []):
+                continue
+
             events.append(payload)
+
+    if limit is not None:
+        events = events[-limit:]
 
     return events
 

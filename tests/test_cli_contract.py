@@ -250,8 +250,25 @@ def test_audit_help_lists_filter_flags(run_memwiz) -> None:
 
     assert result.returncode == 0
 
-    for flag in ("--root", "--workspace", "--day", "--outcome", "--needs-user", "--format"):
+    for flag in (
+        "--root",
+        "--workspace",
+        "--day",
+        "--outcome",
+        "--needs-user",
+        "--reason-code",
+        "--limit",
+        "--format",
+    ):
         assert flag in result.stdout
+
+
+def test_audit_rejects_non_positive_limit_with_parser_error(run_memwiz) -> None:
+    result = run_memwiz("audit", "--limit", "0")
+
+    assert result.returncode == 2
+    assert "usage:" in result.stderr
+    assert "limit must be a positive integer" in result.stderr
 
 
 def test_context_help_lists_scope_and_format_flags(run_memwiz) -> None:

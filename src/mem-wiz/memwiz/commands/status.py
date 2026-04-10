@@ -22,4 +22,6 @@ def run(args: argparse.Namespace) -> int:
     print(f"workspace_inbox\t{payload['counts']['workspace_inbox']}")
     print(f"workspace_canon\t{payload['counts']['workspace_canon']}")
     print(f"review_required_count\t{payload['review_required_count']}")
+    print(f"review_queue_count\t{payload['review_queue_count']}")
+    print(f"promotion_candidate_count\t{payload['promotion_candidate_count']}")
     return 0

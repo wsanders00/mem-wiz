@@ -12,6 +12,8 @@ def configure_parser(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--date-to")
     parser.add_argument("--outcome")
     parser.add_argument("--needs-user", action="store_true")
+    parser.add_argument("--reason-code")
+    parser.add_argument("--limit", type=_positive_int)
     parser.add_argument("--format", choices=("text", "json"), default="text")
 
 
@@ -23,6 +25,8 @@ def run(args: argparse.Namespace) -> int:
         date_to=args.date_to,
         outcome=args.outcome,
         needs_user=True if args.needs_user else None,
+        reason_code=args.reason_code,
+        limit=args.limit,
     )
 
     if args.format == "json":
@@ -42,3 +46,15 @@ def run(args: argparse.Namespace) -> int:
         )
 
     return 0
+
+
+def _positive_int(value: str) -> int:
+    try:
+        parsed = int(value)
+    except ValueError as exc:
+        raise argparse.ArgumentTypeError("limit must be a positive integer") from exc
+
+    if parsed <= 0:
+        raise argparse.ArgumentTypeError("limit must be a positive integer")
+
+    return parsed

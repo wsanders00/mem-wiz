@@ -5,6 +5,7 @@
 - `SKILL.md`: concise operator-facing instructions.
 - `memwiz/`: the Python runtime package and CLI implementation.
 - `scripts/memwiz`: bundle-local entrypoint for running the CLI from an unpacked skill.
+- `references/autonomous-capture.md`: durable reference for autonomous write triggers.
 - `references/storage-layout.md`: durable reference material for structure and paths.
 
 ## Runtime Memory Root

@@ -29,8 +29,10 @@ This repository is an agent-agnostic memory skill. Preserve the current model: m
 ### Agent Usage Pattern
 - Start or resume a task with `.venv/bin/memwiz context --format json` for the selected workspace so the agent loads bounded workspace and global context before acting.
 - Prefer `.venv/bin/memwiz remember --format json` over manual `capture` when the agent needs to save durable knowledge on demand.
+- When a repeatable workflow, durable constraint or preference, warning, evidence-backed decision, or stable fact becomes clear, save it without asking the user for routine approval first.
 - Save high-signal items only: reusable workflows, durable constraints, warnings, decisions, and stable facts or preferences that will matter again.
 - Prefer non-agent evidence sources such as `command`, `doc`, `file`, `test`, or `user` when available. The default balanced policy is more willing to auto-accept those than pure agent assertions.
+- If a candidate is ambiguous, low-confidence, duplicate-prone, or sensitive, skip it or let review surfaces handle it instead of interrupting the user for routine save approval.
 - After autonomous writes or before handoff, inspect `.venv/bin/memwiz status --format json` for `review_queue_count`, bounded `review_queue`, `promotion_candidate_count`, and bounded `promotion_candidates`.
 - Use `.venv/bin/memwiz audit --format json` for targeted follow-up, especially with `--needs-user`, `--outcome`, `--reason-code`, and `--limit`.
 - Do not save one-off task status updates, filler chatter, unsupported guesses, duplicate memories, or secret-like content.

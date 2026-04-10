@@ -52,13 +52,21 @@ background transcript mining or heavy vector infrastructure.
 
 - Start or resume with `scripts/memwiz context --format json`.
 - Save durable knowledge with `scripts/memwiz remember --format json`.
+- When a repeatable workflow, durable constraint or preference, warning,
+  evidence-backed decision, or stable fact becomes clear, save it without
+  asking the user for routine approval first.
 - Prefer high-signal kinds such as `workflow`, `constraint`, `warning`, and `decision`, backed by `command`, `doc`, `file`, `test`, or `user` evidence when available.
+- If a candidate is ambiguous, low-confidence, duplicate-prone, or sensitive,
+  skip it or let policy review surfaces handle it instead of interrupting the
+  user for routine save approval.
 - After autonomous writes or before handoff, inspect `scripts/memwiz status --format json` for `review_queue` and `promotion_candidates`.
 - Use `scripts/memwiz audit --format json` with filters like `--needs-user`, `--reason-code`, and `--limit` when you need targeted review follow-up.
 - Do not remember one-off status chatter, unsupported guesses, strong duplicates, or secret-like content.
 - Keep `promote` explicit and conservative for cross-workspace reuse, even when `status` lists promotion candidates.
+- See `references/autonomous-capture.md` for the lightweight trigger rubric.
 
 ## Bundle Layout
 
 - `scripts/memwiz` runs the CLI from an unpacked skill bundle.
+- `references/autonomous-capture.md` documents when the agent should write or skip memories.
 - `references/storage-layout.md` documents the shipped skill layout and the runtime memory tree.

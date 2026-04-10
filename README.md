@@ -121,12 +121,16 @@ only durable knowledge, and review autonomous decisions before handoff.
 - Start or resume with `memwiz context --format json`. The default `all` scope
   gives the selected workspace plus global digest without scanning unrelated
   workspaces.
-- Save only high-signal memories with `memwiz remember --format json`. Good
-  candidates are reusable workflows, durable constraints, warnings, decisions,
-  and stable facts or preferences.
+- Save only high-signal memories with `memwiz remember --format json`. When a
+  reusable workflow, durable constraint or preference, warning, evidence-backed
+  decision, or stable fact becomes clear, save it without waiting for routine
+  user approval.
 - Prefer `command`, `doc`, `file`, `test`, or `user` evidence when available.
   The default `balanced` profile is intentionally conservative about
   agent-only claims.
+- If a candidate is ambiguous, low-confidence, duplicate-prone, or sensitive,
+  skip it or let the normal review surfaces handle it instead of interrupting
+  the user for routine save approval.
 - Review autonomous behavior with `memwiz status --format json` and
   `memwiz audit --format json`. `status` now surfaces bounded pending-review
   items and promotable accepted memories; `audit` lets you narrow follow-up by

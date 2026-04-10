@@ -21,6 +21,7 @@ def test_build_skill_artifact_uses_bundle_contents_as_archive_root(tmp_path: Pat
 
     assert "SKILL.md" in names
     assert "memwiz/cli.py" in names
+    assert "references/autonomous-capture.md" in names
     assert "references/storage-layout.md" in names
     assert "scripts/memwiz" in names
     assert not any(name.startswith("mem-wiz/") for name in names)

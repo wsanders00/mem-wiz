@@ -22,6 +22,7 @@ TOP_LEVEL_COMMANDS = (
     "status",
     "audit",
     "context",
+    "self-update",
 )
 
 
@@ -68,8 +69,17 @@ def test_root_help_lists_remember_status_audit_and_context(run_memwiz) -> None:
 
     assert result.returncode == 0
 
-    for command in ("remember", "status", "audit", "context"):
+    for command in ("remember", "status", "audit", "context", "self-update"):
         assert command in result.stdout
+
+
+def test_self_update_help_lists_check_repo_and_format_flags(run_memwiz) -> None:
+    result = run_memwiz("self-update", "--help")
+
+    assert result.returncode == 0
+
+    for flag in ("--check", "--repo", "--format", "--root", "--workspace"):
+        assert flag in result.stdout
 
 
 def test_unknown_top_level_command_fails_with_parser_error(run_memwiz) -> None:

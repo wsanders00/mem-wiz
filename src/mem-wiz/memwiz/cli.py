@@ -31,6 +31,8 @@ from memwiz.commands.remember import configure_parser as configure_remember_pars
 from memwiz.commands.remember import run as run_remember
 from memwiz.commands.search import configure_parser as configure_search_parser
 from memwiz.commands.search import run as run_search
+from memwiz.commands.self_update import configure_parser as configure_self_update_parser
+from memwiz.commands.self_update import run as run_self_update
 from memwiz.commands.score import configure_parser as configure_score_parser
 from memwiz.commands.score import run as run_score
 from memwiz.config import MemwizConfig, build_config
@@ -51,6 +53,7 @@ TOP_LEVEL_COMMANDS = (
     "status",
     "audit",
     "context",
+    "self-update",
 )
 
 COMMAND_HELP = {
@@ -69,6 +72,7 @@ COMMAND_HELP = {
     "status": "summarize memory health, policy, and recent autonomous activity",
     "audit": "inspect append-only autonomous audit events",
     "context": "build bounded agent wake-up context",
+    "self-update": "check for and install a newer GitHub release bundle",
 }
 
 
@@ -131,6 +135,9 @@ def build_parser() -> argparse.ArgumentParser:
         elif command == "context":
             configure_context_parser(subparser)
             subparser.set_defaults(handler=run_context)
+        elif command == "self-update":
+            configure_self_update_parser(subparser)
+            subparser.set_defaults(handler=run_self_update)
         else:
             subparser.set_defaults(handler=_run_placeholder)
 

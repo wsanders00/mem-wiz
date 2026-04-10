@@ -12,6 +12,7 @@ PYPROJECT_TEXT = (REPO_ROOT / "pyproject.toml").read_text(encoding="utf-8")
 PYPROJECT = tomllib.loads(PYPROJECT_TEXT)
 SETUP_CFG = configparser.ConfigParser()
 SETUP_CFG.read(REPO_ROOT / "setup.cfg", encoding="utf-8")
+README_TEXT = (REPO_ROOT / "README.md").read_text(encoding="utf-8")
 
 
 def _match_toml_value(section_name: str, key: str) -> str:
@@ -30,6 +31,11 @@ def test_project_version_is_simver_compatible() -> None:
     match = re.search(r'^version\s*=\s*"([^"]+)"', PYPROJECT_TEXT, re.MULTILINE)
     assert match is not None
     assert re.fullmatch(r"\d+\.\d+(?:\.0)?", match.group(1))
+
+
+def test_project_version_matches_runtime_version() -> None:
+    runtime_version = import_module("memwiz").__version__
+    assert PYPROJECT["project"]["version"] == runtime_version
 
 
 def test_project_requires_python_matches_baseline() -> None:
@@ -63,6 +69,21 @@ def test_skill_bundle_root_top_level_entries_are_allowlisted() -> None:
         "references",
         "scripts",
     ]
+
+
+def test_readme_mentions_github_releases_and_self_update() -> None:
+    assert "GitHub Releases" in README_TEXT
+    assert "self-update" in README_TEXT
+
+
+def test_releasing_doc_exists_and_mentions_version_tags_and_artifacts() -> None:
+    releasing_path = REPO_ROOT / "RELEASING.md"
+    assert releasing_path.is_file()
+
+    releasing_text = releasing_path.read_text(encoding="utf-8")
+
+    for phrase in ("version bump", "v0.1.0", "mem-wiz-skill-", ".sha256"):
+        assert phrase in releasing_text
 
 
 def test_skill_bundle_root_excludes_generated_dev_artifacts() -> None:

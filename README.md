@@ -17,6 +17,8 @@ skill bundle can be released from `src/mem-wiz/`.
   `SKILL.md` concise.
 - `python3 scripts/build_skill_artifact.py` writes a zip under `dist/` using
   the contents of `src/mem-wiz/` as the archive root.
+- GitHub Releases are the release channel for this project. Each release should
+  publish `mem-wiz-skill-<version>.zip` plus a matching `.sha256` checksum.
 - CLI scope defaults are part of the v1 contract: `get`, `lint`, `compile`,
   and `prune` default to the selected workspace; `search` defaults to selected
   workspace plus global; `--scope all` means selected workspace plus global
@@ -26,6 +28,19 @@ skill bundle can be released from `src/mem-wiz/`.
 - When running directly against `src/mem-wiz/`, prefer
   `PYTHONDONTWRITEBYTECODE=1` to avoid leaving `__pycache__/` under the shipped
   bundle tree.
+
+## Releases And Updates
+
+- Releases are published from GitHub Releases, not PyPI.
+- Use `python3 scripts/build_skill_artifact.py` to build the release bundle
+  locally before tagging.
+- The updater command is `memwiz self-update`.
+- `memwiz self-update --check` reports whether a newer public GitHub release is
+  available.
+- In-place updates are intended for unpacked release bundle installs. Editable
+  development checkouts refuse `self-update` and should be updated through git
+  instead.
+- Maintainer release steps live in `RELEASING.md`.
 
 ## Memory Workflow
 

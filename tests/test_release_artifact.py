@@ -1,6 +1,9 @@
 from __future__ import annotations
 
+import os
 from pathlib import Path
+import shutil
+import stat
 import subprocess
 import sys
 from zipfile import ZipFile
@@ -105,6 +108,42 @@ def test_release_builder_cli_accepts_output_dir_and_prints_artifact_path(tmp_pat
 
     assert artifact_path.parent == tmp_path
     assert artifact_path.is_file()
+
+
+def test_release_bundle_launcher_is_self_contained_for_first_install(tmp_path: Path) -> None:
+    artifact_path = build_skill_artifact(output_dir=tmp_path)
+    install_root = tmp_path / "install"
+
+    with ZipFile(artifact_path) as archive:
+        archive.extractall(install_root)
+
+    shim_dir = tmp_path / "bin"
+    shim_dir.mkdir()
+    shim_path = shim_dir / "python3"
+    real_python3 = shutil.which("python3")
+
+    assert real_python3 is not None
+
+    shim_path.write_text(
+        f"#!/bin/sh\nexec {real_python3} -S \"$@\"\n",
+        encoding="utf-8",
+    )
+    shim_path.chmod(shim_path.stat().st_mode | stat.S_IEXEC)
+
+    completed = subprocess.run(
+        ["/bin/sh", str(install_root / "scripts" / "memwiz"), "--help"],
+        cwd=install_root,
+        capture_output=True,
+        text=True,
+        env={
+            "PATH": os.pathsep.join([str(shim_dir), os.environ.get("PATH", "")]),
+            "PYTHONDONTWRITEBYTECODE": "1",
+            "PYTHONPATH": "",
+        },
+    )
+
+    assert completed.returncode == 0
+    assert "memwiz command line interface" in completed.stdout
 
 
 def test_build_skill_artifact_rejects_output_dir_when_it_is_inside_bundle_root(

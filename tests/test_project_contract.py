@@ -60,6 +60,13 @@ def test_skill_bundle_root_has_required_entries() -> None:
     assert (bundle_root / "references" / "storage-layout.md").is_file()
 
 
+def test_skill_bundle_includes_vendored_yaml_runtime() -> None:
+    bundle_root = REPO_ROOT / "src" / "mem-wiz"
+
+    assert (bundle_root / "memwiz" / "_vendor" / "yaml" / "__init__.py").is_file()
+    assert (bundle_root / "memwiz" / "_vendor" / "licenses" / "PyYAML-LICENSE").is_file()
+
+
 def test_skill_bundle_root_top_level_entries_are_allowlisted() -> None:
     bundle_root = REPO_ROOT / "src" / "mem-wiz"
 

@@ -13,6 +13,9 @@ skill bundle can be released from `src/mem-wiz/`.
   CLI entrypoint used for editable installs.
 - `src/mem-wiz/scripts/memwiz` is the bundle-local wrapper for invoking the CLI
   from an unpacked skill bundle.
+- The shipped bundle vendors its YAML runtime so a user can drop `mem-wiz`
+  into their skills directory and use `scripts/memwiz` immediately without a
+  first-run `pip install`.
 - `src/mem-wiz/references/` holds on-demand reference material that keeps
   `SKILL.md` concise.
 - `.venv/bin/python scripts/build_skill_artifact.py` writes a zip under `dist/` using
@@ -34,6 +37,9 @@ skill bundle can be released from `src/mem-wiz/`.
 - Releases are published from GitHub Releases, not PyPI.
 - Use `.venv/bin/python scripts/build_skill_artifact.py` to build the release bundle
   locally before tagging.
+- First install is intended to be drop-in for unpacked release bundles placed in
+  an agent skills directory. The bundle launcher uses only shipped Python code
+  and does not require host `PyYAML`.
 - The updater command is `memwiz self-update`.
 - `memwiz self-update --check` reports whether a newer public GitHub release is
   available.
@@ -79,6 +85,18 @@ max_autonomous_memories_per_day: 25
 ```
 
 ## First Use
+
+For a new user installing the released skill bundle:
+
+```bash
+cd ~/.codex/skills
+unzip mem-wiz-skill-<version>.zip -d mem-wiz
+mem-wiz/scripts/memwiz --workspace my-repo init
+```
+
+After the bundle is present, `scripts/memwiz` is the supported entrypoint for
+the unpacked skill install and should work without any separate dependency
+installation.
 
 For a clean first run in one workspace:
 

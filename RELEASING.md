@@ -3,7 +3,7 @@
 This project publishes from GitHub Releases only.
 
 The release workflow expects a normal version bump followed by a git tag push.
-The example tag in this document is `v0.1.1`, but use the next SimVer value for
+The example tag in this document is `v0.1.2`, but use the next SimVer value for
 the actual release.
 
 ## Maintainer Checklist
@@ -14,7 +14,7 @@ the actual release.
 4. Confirm the artifact name matches `mem-wiz-skill-<version>.zip`.
 5. Generate or verify the companion `.sha256` checksum file for the zip artifact.
 6. Commit the release metadata changes.
-7. Create and push the release tag, for example `git tag v0.1.1` followed by `git push origin v0.1.1`.
+7. Create and push the release tag, for example `git tag v0.1.2` followed by `git push origin v0.1.2`.
 
 ## Workflow Behavior
 

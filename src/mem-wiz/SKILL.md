@@ -48,6 +48,8 @@ background transcript mining or heavy vector infrastructure.
 
 - The memory root defaults to `~/.memwiz` and can be overridden with `MEMWIZ_ROOT`.
 - The workspace slug comes from `--workspace`, `MEMWIZ_WORKSPACE`, or the current repo name.
+- The unpacked skill bundle ships a vendored YAML runtime, so `scripts/memwiz`
+  should work on first install without a separate dependency bootstrap step.
 - Prefer concise, evidence-backed, durable memories over ephemeral task chatter.
 - Never store credentials or other secret-like content.
 - Prefer `remember` over `capture` when an agent needs on-demand autonomous memory.

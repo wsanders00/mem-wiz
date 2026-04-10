@@ -4,6 +4,7 @@
 
 - `SKILL.md`: concise operator-facing instructions.
 - `memwiz/`: the Python runtime package and CLI implementation.
+- `memwiz/_vendor/yaml/`: vendored YAML runtime used by the bundle-local launcher.
 - `scripts/memwiz`: bundle-local entrypoint for running the CLI from an unpacked skill.
 - `references/autonomous-capture.md`: durable reference for autonomous write triggers.
 - `references/storage-layout.md`: durable reference material for structure and paths.
@@ -28,3 +29,5 @@
 - `status`, `audit`, and `context` read this layout directly; no secondary
   memory store or hidden index is introduced.
 - Release artifacts package `src/mem-wiz/` directly, so these paths appear at archive root.
+- The bundle launcher uses the vendored YAML runtime so first install does not
+  require a separate dependency install step.

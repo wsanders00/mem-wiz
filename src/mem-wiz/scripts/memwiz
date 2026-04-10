@@ -3,11 +3,13 @@ set -eu
 
 SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 SKILL_ROOT=$(CDPATH= cd -- "$SCRIPT_DIR/.." && pwd)
+BUNDLE_PYTHONPATH="$SKILL_ROOT:$SKILL_ROOT/memwiz/_vendor"
 
 if [ -n "${PYTHONPATH:-}" ]; then
-    export PYTHONPATH="$SKILL_ROOT:$PYTHONPATH"
+    export PYTHONPATH="$BUNDLE_PYTHONPATH:$PYTHONPATH"
 else
-    export PYTHONPATH="$SKILL_ROOT"
+    export PYTHONPATH="$BUNDLE_PYTHONPATH"
 fi
 
-exec python3 -m memwiz.cli "$@"
+# Keep the unpacked bundle self-contained instead of inheriting host site-packages.
+exec python3 -S -m memwiz.cli "$@"

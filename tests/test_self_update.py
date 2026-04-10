@@ -3,8 +3,10 @@ from __future__ import annotations
 import hashlib
 import io
 import json
+import os
 from pathlib import Path
-from zipfile import ZipFile
+import stat
+from zipfile import ZipFile, ZipInfo
 
 import pytest
 
@@ -103,6 +105,29 @@ def test_apply_update_replaces_bundle_after_valid_download(tmp_path: Path) -> No
     assert (bundle_root / "SKILL.md").read_text(encoding="utf-8") == "# new skill\n"
 
 
+def test_apply_update_preserves_executable_bundle_launcher(tmp_path: Path) -> None:
+    bundle_root = make_bundle_root(tmp_path / "install", version="0.1.0", skill_text="# old skill\n")
+    version = "0.2.0"
+    artifact = build_artifact(version=version, skill_text="# new skill\n", script_mode=0o755)
+    downloads = {
+        f"https://example.test/mem-wiz-skill-{version}.zip": artifact,
+        f"https://example.test/mem-wiz-skill-{version}.zip.sha256": checksum_bytes(artifact),
+    }
+
+    apply_update(
+        bundle_root=bundle_root,
+        current_version="0.1.0",
+        repo=DEFAULT_RELEASE_REPO,
+        fetch_release=lambda repo: release_payload(version),
+        download_asset=lambda url: downloads[url],
+    )
+
+    launcher_path = bundle_root / "scripts" / "memwiz"
+
+    assert os.access(launcher_path, os.X_OK)
+    assert stat.S_IMODE(launcher_path.stat().st_mode) & stat.S_IXUSR
+
+
 def test_apply_update_restores_backup_when_final_swap_fails(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
@@ -197,6 +222,7 @@ def make_bundle_root(
     (path / "SKILL.md").write_text(skill_text, encoding="utf-8")
     (path / "memwiz" / "__init__.py").write_text(f'__version__ = "{version}"\n', encoding="utf-8")
     (path / "scripts" / "memwiz").write_text("#!/bin/sh\n", encoding="utf-8")
+    (path / "scripts" / "memwiz").chmod((path / "scripts" / "memwiz").stat().st_mode | stat.S_IEXEC)
     (path / "references" / "storage-layout.md").write_text("# storage\n", encoding="utf-8")
     return path
 
@@ -218,13 +244,15 @@ def release_payload(version: str) -> dict[str, object]:
     }
 
 
-def build_artifact(*, version: str, skill_text: str) -> bytes:
+def build_artifact(*, version: str, skill_text: str, script_mode: int = 0o644) -> bytes:
     artifact = io.BytesIO()
 
     with ZipFile(artifact, "w") as archive:
         archive.writestr("SKILL.md", skill_text)
         archive.writestr("memwiz/__init__.py", f'__version__ = "{version}"\n')
-        archive.writestr("scripts/memwiz", "#!/bin/sh\n")
+        script_info = ZipInfo("scripts/memwiz")
+        script_info.external_attr = ((stat.S_IFREG | script_mode) & 0xFFFF) << 16
+        archive.writestr(script_info, "#!/bin/sh\n")
         archive.writestr("references/storage-layout.md", "# storage\n")
 
     return artifact.getvalue()

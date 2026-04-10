@@ -269,7 +269,20 @@ def verify_checksum(*, asset_name: str, payload: bytes, checksum_payload: bytes)
 
 def extract_bundle(payload: bytes, output_dir: Path) -> None:
     with ZipFile(io.BytesIO(payload)) as archive:
-        archive.extractall(output_dir)
+        for entry in archive.infolist():
+            destination = output_dir / entry.filename
+
+            if entry.is_dir():
+                destination.mkdir(parents=True, exist_ok=True)
+                _apply_entry_mode(destination, entry)
+                continue
+
+            destination.parent.mkdir(parents=True, exist_ok=True)
+
+            with archive.open(entry) as source, destination.open("wb") as target:
+                shutil.copyfileobj(source, target)
+
+            _apply_entry_mode(destination, entry)
 
 
 def validate_bundle_root(bundle_root: Path) -> None:
@@ -281,6 +294,12 @@ def validate_bundle_root(bundle_root: Path) -> None:
 
 def replace_path(source: Path, destination: Path) -> None:
     source.replace(destination)
+
+
+def _apply_entry_mode(path: Path, entry: Any) -> None:
+    mode = int(getattr(entry, "external_attr", 0)) >> 16
+    if mode:
+        os.chmod(path, mode)
 
 
 def _string_or_none(value: object) -> str | None:

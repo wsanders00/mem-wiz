@@ -24,4 +24,13 @@ Use `pytest` for all coverage. Add or update tests with every behavior change, e
 History uses Conventional Commit prefixes such as `feat:`, `fix:`, `docs:`, and `chore:`. Keep subjects imperative and scoped to one behavior change. Pull requests should summarize user-visible changes, call out CLI or schema impacts, and include the verification command used, usually `python3 -m pytest -q`. Releases follow SimVer.
 
 ## Agent-Specific Notes
-This repository is an agent-agnostic memory skill. Preserve the current model: workspace capture is explicit, global memory promotion is explicit, and memory should stay lightweight rather than grow without bound. Preserve the v1 CLI scope contract: `get`, `lint`, `compile`, and `prune` default to workspace, `search` spans the selected workspace plus global, and `--scope all` never scans every workspace under a root.
+This repository is an agent-agnostic memory skill. Preserve the current model: manual workspace `capture` is explicit, autonomous workspace capture happens through `remember`, global memory promotion is explicit, and memory should stay lightweight rather than grow without bound. Preserve the v1 CLI scope contract: `get`, `lint`, `compile`, and `prune` default to workspace, `search` spans the selected workspace plus global, and `--scope all` never scans every workspace under a root.
+
+### Agent Usage Pattern
+- Start or resume a task with `.venv/bin/memwiz context --format json` for the selected workspace so the agent loads bounded workspace and global context before acting.
+- Prefer `.venv/bin/memwiz remember --format json` over manual `capture` when the agent needs to save durable knowledge on demand.
+- Save high-signal items only: reusable workflows, durable constraints, warnings, decisions, and stable facts or preferences that will matter again.
+- Prefer non-agent evidence sources such as `command`, `doc`, `file`, `test`, or `user` when available. The default balanced policy is more willing to auto-accept those than pure agent assertions.
+- After autonomous writes, before handoff, or whenever `remember` reports follow-up reason codes, inspect `.venv/bin/memwiz status --format json` and `.venv/bin/memwiz audit --format json`.
+- Do not save one-off task status updates, filler chatter, unsupported guesses, duplicate memories, or secret-like content.
+- Keep `promote` manual and conservative. Only promote accepted workspace memories that deserve cross-workspace reuse.

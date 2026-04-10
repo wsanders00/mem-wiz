@@ -48,6 +48,15 @@ background transcript mining or heavy vector infrastructure.
 - Prefer `remember` over `capture` when an agent needs on-demand autonomous memory.
 - Use `status`, `audit`, and `context` to review or consume autonomous behavior.
 
+## Agent Operating Pattern
+
+- Start or resume with `scripts/memwiz context --format json`.
+- Save durable knowledge with `scripts/memwiz remember --format json`.
+- Prefer high-signal kinds such as `workflow`, `constraint`, `warning`, and `decision`, backed by `command`, `doc`, `file`, `test`, or `user` evidence when available.
+- After autonomous writes or before handoff, inspect `scripts/memwiz status --format json` and `scripts/memwiz audit --format json`.
+- Do not remember one-off status chatter, unsupported guesses, strong duplicates, or secret-like content.
+- Keep `promote` explicit and conservative for cross-workspace reuse.
+
 ## Bundle Layout
 
 - `scripts/memwiz` runs the CLI from an unpacked skill bundle.

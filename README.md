@@ -77,3 +77,57 @@ max_autonomous_memories_per_day: 25
   support `--format json`.
 - `context` produces bounded wake-up context from the selected workspace plus
   global scope boundaries without scanning unrelated workspaces.
+
+## Agent Operating Pattern
+
+Keep the memory loop small and deliberate: read context at task start, write
+only durable knowledge, and review autonomous decisions before handoff.
+
+- Start or resume with `memwiz context --format json`. The default `all` scope
+  gives the selected workspace plus global digest without scanning unrelated
+  workspaces.
+- Save only high-signal memories with `memwiz remember --format json`. Good
+  candidates are reusable workflows, durable constraints, warnings, decisions,
+  and stable facts or preferences.
+- Prefer `command`, `doc`, `file`, `test`, or `user` evidence when available.
+  The default `balanced` profile is intentionally conservative about
+  agent-only claims.
+- Review autonomous behavior with `memwiz status --format json` and
+  `memwiz audit --format json`, especially when `remember` returns
+  `review_required: true`, non-empty `reason_codes`, or an outcome that should
+  be inspected before continuing.
+- Skip low-value writes. Do not store one-off task status chatter, filler,
+  unsupported guesses, duplicate summaries, or secret-like content.
+- Keep global promotion explicit. Use `promote` only for accepted workspace
+  memories that should help across workspaces.
+
+Example agent loop:
+
+```bash
+memwiz --workspace my-repo context --format json
+
+memwiz --workspace my-repo remember \
+  --kind workflow \
+  --summary "Run status and audit after policy-driven memory writes." \
+  --details "Review inbox pressure and recent outcomes before a handoff or major tool step." \
+  --evidence-source doc \
+  --evidence-ref README.md \
+  --format json
+
+memwiz --workspace my-repo status --format json
+memwiz --workspace my-repo audit --needs-user --format json
+```
+
+What to remember:
+
+- Workflows the agent should repeat.
+- Constraints that block or shape future work.
+- Warnings about sharp edges, regressions, or failure modes.
+- Decisions with enough evidence to explain why they were made.
+
+What not to remember:
+
+- One-off progress updates or temporary TODOs.
+- Conversational filler or summaries with no future reuse.
+- Low-confidence guesses that lack acceptable evidence.
+- Credentials, tokens, secrets, or secret-like material.

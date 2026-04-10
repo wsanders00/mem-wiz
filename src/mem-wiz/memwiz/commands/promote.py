@@ -110,13 +110,17 @@ def _duplicate_flags(
 
 def _build_provisional_global_record(record: MemoryRecord, timestamp: str) -> MemoryRecord:
     payload = record.to_dict()
+    payload["schema_version"] = 2
     score_payload = record.score.to_dict() if record.score is not None else {}
     score_payload["promote"] = score_payload.get("retain", 0.0)
     payload["id"] = _build_memory_id(timestamp)
     payload["scope"] = "global"
     payload.pop("workspace", None)
     payload["score"] = score_payload
-    payload["decision"] = Decision(accepted_at=timestamp).to_dict()
+    payload["decision"] = Decision(
+        accepted_at=timestamp,
+        accepted_mode="manual",
+    ).to_dict()
     payload["provenance"] = Provenance(
         source_scope="workspace",
         source_workspace=record.workspace or "",
@@ -138,7 +142,7 @@ def _finalize_promoted_record(
     promote_result: ScoreResult,
 ) -> MemoryRecord:
     return MemoryRecord(
-        schema_version=record.schema_version,
+        schema_version=2,
         id=_build_memory_id(timestamp),
         scope="global",
         workspace=None,
@@ -159,7 +163,11 @@ def _finalize_promoted_record(
         ),
         tags=record.tags,
         status="accepted",
-        decision=Decision(accepted_at=timestamp),
+        decision=Decision(
+            accepted_at=timestamp,
+            accepted_mode="manual",
+        ),
+        origin=record.origin,
         score_reasons=build_score_reasons(retain_result),
         provenance=Provenance(
             source_scope="workspace",

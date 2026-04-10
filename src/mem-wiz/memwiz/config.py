@@ -16,6 +16,8 @@ ENV_WORKSPACE = "MEMWIZ_WORKSPACE"
 @dataclass(frozen=True)
 class MemwizConfig:
     root: Path
+    policy_path: Path
+    audit_root: Path
     workspace_slug: str
     workspace_root: Path
     workspace_inbox: Path
@@ -96,6 +98,8 @@ def build_config(
 
     return MemwizConfig(
         root=resolved_root,
+        policy_path=resolved_root / "policy.yaml",
+        audit_root=resolved_root / "audit",
         workspace_slug=workspace_slug,
         workspace_root=workspace_root,
         workspace_inbox=workspace_root / "inbox",

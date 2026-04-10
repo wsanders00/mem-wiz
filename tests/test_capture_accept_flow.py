@@ -39,11 +39,15 @@ def test_capture_writes_only_to_workspace_inbox(tmp_path: Path, monkeypatch) -> 
 
     config = build_config(root=root, workspace="Task Space", env={})
     inbox_records = list_workspace_records(config, "inbox")
+    captured_record = read_record(inbox_records[0])
 
     assert exit_code == 0
     assert len(inbox_records) == 1
     assert list_workspace_records(config, "canon") == []
-    assert read_record(inbox_records[0]).status == "captured"
+    assert captured_record.status == "captured"
+    assert captured_record.schema_version == 2
+    assert captured_record.origin is not None
+    assert captured_record.origin.capture_mode == "manual"
 
 
 def test_capture_rejects_secret_like_input_before_write(
@@ -290,8 +294,12 @@ def test_accept_moves_retained_candidates_into_workspace_canon(
     assert len(canon_records) == 1
     accepted = read_record(canon_records[0])
     assert accepted.status == "accepted"
+    assert accepted.schema_version == 2
+    assert accepted.origin is not None
+    assert accepted.origin.capture_mode == "manual"
     assert accepted.decision is not None
     assert accepted.decision.accepted_at == "2026-04-08T17:00:00Z"
+    assert accepted.decision.accepted_mode == "manual"
     assert accepted.updated_at == "2026-04-08T17:00:00Z"
 
 

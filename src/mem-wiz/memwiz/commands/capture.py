@@ -5,7 +5,13 @@ from secrets import token_hex
 import sys
 
 from memwiz.clock import CommandClock, build_command_clock
-from memwiz.models import ALLOWED_EVIDENCE_SOURCES, ALLOWED_KINDS, EvidenceItem, MemoryRecord
+from memwiz.models import (
+    ALLOWED_EVIDENCE_SOURCES,
+    ALLOWED_KINDS,
+    EvidenceItem,
+    MemoryRecord,
+    Origin,
+)
 from memwiz.scoring import contains_secret_like_content
 from memwiz.storage import initialize_root, write_workspace_candidate
 
@@ -36,7 +42,7 @@ def run(args: argparse.Namespace, *, command_clock: CommandClock | None = None) 
     clock = command_clock or build_command_clock()
     timestamp = clock.timestamp()
     record = MemoryRecord(
-        schema_version=1,
+        schema_version=2,
         id=_build_memory_id(timestamp),
         scope="workspace",
         workspace=args.config.workspace_slug,
@@ -45,6 +51,7 @@ def run(args: argparse.Namespace, *, command_clock: CommandClock | None = None) 
         details=args.details,
         evidence=[EvidenceItem(source=args.evidence_source, ref=args.evidence_ref)],
         status="captured",
+        origin=Origin(actor_type="user", capture_mode="manual"),
         tags=args.tags,
         created_at=timestamp,
         updated_at=timestamp,

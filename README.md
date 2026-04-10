@@ -26,3 +26,38 @@ skill bundle can be released from `src/mem-wiz/`.
 - When running directly against `src/mem-wiz/`, prefer
   `PYTHONDONTWRITEBYTECODE=1` to avoid leaving `__pycache__/` under the shipped
   bundle tree.
+
+## Memory Workflow
+
+- `capture` remains the low-level manual write to the selected workspace inbox.
+- `remember` is the policy-aware autonomous entrypoint for agents. It captures,
+  scores, and may auto-accept safe workspace memories while always writing an
+  audit event.
+- Workspace canon is the self-improvement layer. Global canon remains the
+  higher-trust layer and still requires explicit promotion by default.
+
+## Autonomy Defaults
+
+- `policy.yaml` lives at the memory root and defaults to the `balanced` profile
+  when absent.
+- The default `balanced` profile allows autonomous capture plus safe workspace
+  auto-accept for durable kinds such as `workflow`, `constraint`, `warning`,
+  and `decision`.
+- Global auto-promotion stays conservative. The default policy is `suggest`,
+  not automatic promotion.
+- Autonomous decisions are append-only under `audit/YYYY-MM-DD.jsonl`.
+
+## Command Surface
+
+- Manual flow: `capture`, `score`, `accept`, `promote`
+- Autonomous flow: `remember`
+- Review surfaces: `status`, `audit`, `context`
+- Retrieval and diagnostics: `search`, `get`, `doctor`, `compile`, `lint`, `prune`
+
+## Agent-Facing Output
+
+- `remember --format json` returns a structured decision payload.
+- `search`, `get`, `doctor`, `compile`, `status`, `audit`, and `context` all
+  support `--format json`.
+- `context` produces bounded wake-up context from the selected workspace plus
+  global scope boundaries without scanning unrelated workspaces.

@@ -9,6 +9,8 @@
 
 ## Runtime Memory Root
 
+- `policy.yaml`: root-level autonomy policy for `remember`.
+- `audit/YYYY-MM-DD.jsonl`: append-only autonomous decision log.
 - `global/canon/`: accepted global memories.
 - `global/archive/`: archived global memories.
 - `global/cache/`: shared cache data.
@@ -20,4 +22,8 @@
 ## Notes
 
 - Global memory has no inbox; promotion starts from accepted workspace canon.
+- `remember` may auto-accept into workspace canon under policy, but global
+  promotion remains explicit by default.
+- `status`, `audit`, and `context` read this layout directly; no secondary
+  memory store or hidden index is introduced.
 - Release artifacts package `src/mem-wiz/` directly, so these paths appear at archive root.

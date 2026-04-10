@@ -37,7 +37,7 @@ def run(args: argparse.Namespace, *, command_clock: CommandClock | None = None) 
 
     scored_record = score_workspace_record(
         record,
-        canon_records=_load_workspace_canon(args.config),
+        canon_records=load_workspace_canon(args.config),
         timestamp=clock.timestamp(),
     )
     write_record(record_path, scored_record)
@@ -49,7 +49,7 @@ def workspace_candidate_path(config, record_id: str) -> Path:
     return workspace_record_path(config, "inbox", record_id)
 
 
-def _load_workspace_canon(config) -> list[MemoryRecord]:
+def load_workspace_canon(config) -> list[MemoryRecord]:
     return [read_record(path) for path in list_workspace_records(config, "canon")]
 
 
@@ -112,13 +112,32 @@ def score_workspace_record(
     canon_records: Iterable[MemoryRecord],
     timestamp: str,
 ) -> MemoryRecord:
+    scored_record, _, _, _ = score_workspace_candidate(
+        record,
+        canon_records=canon_records,
+        timestamp=timestamp,
+    )
+    return scored_record
+
+
+def score_workspace_candidate(
+    record: MemoryRecord,
+    *,
+    canon_records: Iterable[MemoryRecord],
+    timestamp: str,
+) -> tuple[MemoryRecord, ScoreResult, bool, bool]:
     has_strong_duplicate, has_near_duplicate = duplicate_flags(record, canon_records)
     result = evaluate_workspace_record(
         record,
         has_strong_duplicate=has_strong_duplicate,
         has_near_duplicate=has_near_duplicate,
     )
-    return _apply_score(record, result, timestamp)
+    return (
+        _apply_score(record, result, timestamp),
+        result,
+        has_strong_duplicate,
+        has_near_duplicate,
+    )
 
 
 def build_score_reasons(result: ScoreResult) -> tuple[str, ...]:
@@ -140,3 +159,6 @@ def build_score_reasons(result: ScoreResult) -> tuple[str, ...]:
         reasons.append(f"retain-score:{result.total:.2f}")
 
     return tuple(reasons)
+
+
+_load_workspace_canon = load_workspace_canon

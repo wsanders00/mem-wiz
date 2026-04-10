@@ -152,17 +152,21 @@ def test_promoted_global_records_include_provenance_and_both_score_fields(
     assert exit_code == 0
     assert len(global_records) == 1
     promoted = read_record(global_records[0])
+    assert promoted.schema_version == 2
     assert promoted.scope == "global"
     assert promoted.workspace is None
     assert promoted.score is not None
     assert promoted.score.retain is not None
     assert promoted.score.promote is not None
+    assert promoted.origin is not None
+    assert promoted.origin.capture_mode == "manual"
     assert promoted.provenance is not None
     assert promoted.provenance.source_scope == "workspace"
     assert promoted.provenance.source_workspace == "task-space"
     assert promoted.provenance.source_memory_id == record_id
     assert promoted.decision is not None
     assert promoted.decision.accepted_at == "2026-04-08T18:00:00Z"
+    assert promoted.decision.accepted_mode == "manual"
     assert promoted.updated_at == "2026-04-08T18:00:00Z"
     assert len(workspace_records) == 1
     assert read_record(workspace_records[0]).status == "accepted"

@@ -53,6 +53,7 @@ class DigestPlan:
     content: str
     included_count: int
     omitted_count: int
+    included_record_ids: tuple[str, ...] = ()
 
 
 def build_digest_plans(
@@ -122,6 +123,7 @@ def _build_scope_plan(
         content=content,
         included_count=len(selected_records),
         omitted_count=omitted_count,
+        included_record_ids=tuple(record.id for record in selected_records),
     )
 
 

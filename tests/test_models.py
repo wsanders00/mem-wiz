@@ -6,15 +6,38 @@ from memwiz.models import (
     Decision,
     EvidenceItem,
     MemoryRecord,
+    Origin,
     Provenance,
     Score,
 )
 from memwiz.serde import dump_record, load_record
 
 
-def test_schema_version_is_locked_to_one() -> None:
+def test_schema_version_two_allows_origin_and_policy_decision_fields() -> None:
+    record = make_workspace_accepted_record(
+        schema_version=2,
+        origin=Origin(
+            actor_type="agent",
+            actor_name="codex",
+            capture_mode="autonomous",
+        ),
+        decision=Decision(
+            accepted_at="2026-04-08T15:30:00Z",
+            accepted_mode="policy",
+            accepted_by="balanced",
+        ),
+    )
+
+    assert record.schema_version == 2
+    assert record.origin is not None
+    assert record.origin.actor_type == "agent"
+    assert record.decision is not None
+    assert record.decision.accepted_mode == "policy"
+
+
+def test_schema_version_rejects_unknown_value() -> None:
     with pytest.raises(ValueError, match="schema_version"):
-        make_workspace_accepted_record(schema_version=2)
+        make_workspace_accepted_record(schema_version=3)
 
 
 @pytest.mark.parametrize(
@@ -105,6 +128,14 @@ def test_yaml_round_trip_preserves_record_structure() -> None:
     loaded = load_record(serialized)
 
     assert loaded == record
+
+
+def test_v1_yaml_round_trip_still_loads_without_origin() -> None:
+    serialized = dump_record(make_workspace_accepted_record(schema_version=1))
+    loaded = load_record(serialized)
+
+    assert loaded.schema_version == 1
+    assert getattr(loaded, "origin", None) is None
 
 
 def make_workspace_accepted_record(**overrides) -> MemoryRecord:

@@ -14,6 +14,7 @@ from memwiz.fsops import (
     atomic_replace,
     fsync_directory,
 )
+from memwiz.output import digest_plan_to_dict, emit_json
 from memwiz.storage import initialize_root
 
 
@@ -23,6 +24,7 @@ def configure_parser(parser: argparse.ArgumentParser) -> None:
         choices=("workspace", "global", "all"),
         default="workspace",
     )
+    parser.add_argument("--format", choices=("text", "json"), default="text")
 
 
 def run(
@@ -50,6 +52,9 @@ def run(
     except Exception as exc:
         print(f"Compile failed: {exc}", file=sys.stderr)
         return 1
+
+    if args.format == "json":
+        return emit_json([digest_plan_to_dict(plan) for plan in plans])
 
     for plan in plans:
         print(

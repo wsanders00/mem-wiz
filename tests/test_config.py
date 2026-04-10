@@ -136,6 +136,8 @@ def test_build_config_derives_workspace_and_global_paths(tmp_path: Path) -> None
     assert config.global_canon == root / "global" / "canon"
     assert config.global_archive == root / "global" / "archive"
     assert config.global_cache == root / "global" / "cache"
+    assert config.policy_path == root / "policy.yaml"
+    assert config.audit_root == root / "audit"
 
 
 def _init_git_repository(path: Path) -> Path:

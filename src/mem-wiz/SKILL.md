@@ -1,18 +1,30 @@
 # mem-wiz
 
-mem-wiz is an agent-agnostic memory skill for capturing, scoring, accepting,
-and promoting durable memories without letting storage bloat over time.
+mem-wiz is an agent-agnostic memory skill for lightweight long-term memory.
+It keeps YAML as the source of truth, stays local and inspectable, and avoids
+background transcript mining or heavy vector infrastructure.
 
 ## Memory Model
 
 - Workspace memories start as candidates in the selected workspace inbox.
 - Accepted workspace memories move into workspace canon after scoring.
 - Global memories are promoted explicitly from accepted workspace records.
+- `remember` is the only autonomous write entrypoint in v1.
+- Workspace canon is the self-improvement layer; global canon stays higher trust.
+
+## Autonomy Model
+
+- Root policy lives at `<memwiz-root>/policy.yaml`.
+- Missing policy defaults to the `balanced` profile.
+- Autonomous decisions are recorded under `<memwiz-root>/audit/YYYY-MM-DD.jsonl`.
+- The default `balanced` profile may auto-accept safe workspace memories, but
+  global auto-promotion remains conservative and is not the default.
 
 ## Current Commands
 
 - `init`: create the memory root plus shared global directories.
 - `capture`: write a workspace candidate and reject secret-like content.
+- `remember`: capture, score, audit, and possibly auto-accept a workspace memory.
 - `score`: evaluate workspace candidates for workspace retention fitness.
 - `accept`: move an eligible workspace candidate into workspace canon.
 - `promote`: copy an eligible accepted workspace memory into global canon with provenance.
@@ -22,6 +34,9 @@ and promoting durable memories without letting storage bloat over time.
 - `get`: print canonical YAML for one accepted memory by ID.
 - `prune`: archive structurally redundant accepted canon memories, with `--dry-run` preview support.
 - `doctor`: inspect root, workspace, lock, and canon/archive record health without mutating memory state.
+- `status`: summarize policy, counts, digests, and current review pressure.
+- `audit`: inspect append-only autonomous decisions with simple filters.
+- `context`: generate bounded wake-up context for the selected workspace and global scope.
 
 ## Runtime Notes
 
@@ -29,6 +44,8 @@ and promoting durable memories without letting storage bloat over time.
 - The workspace slug comes from `--workspace`, `MEMWIZ_WORKSPACE`, or the current repo name.
 - Prefer concise, evidence-backed, durable memories over ephemeral task chatter.
 - Never store credentials or other secret-like content.
+- Prefer `remember` over `capture` when an agent needs on-demand autonomous memory.
+- Use `status`, `audit`, and `context` to review or consume autonomous behavior.
 
 ## Bundle Layout
 

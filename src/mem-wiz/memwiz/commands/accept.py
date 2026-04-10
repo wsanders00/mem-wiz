@@ -12,11 +12,9 @@ from memwiz.storage import write_workspace_canon
 
 from memwiz.commands.score import (
     build_score_reasons,
-    duplicate_flags,
-    evaluate_workspace_record,
-    score_workspace_record,
+    load_workspace_canon,
+    score_workspace_candidate,
     workspace_candidate_path,
-    _load_workspace_canon,
 )
 
 
@@ -52,16 +50,9 @@ def run(args: argparse.Namespace, *, command_clock: CommandClock | None = None) 
         print("Accept rejected: secret-like content detected.", file=sys.stderr)
         return 4
 
-    canon_records = _load_workspace_canon(args.config)
-    has_strong_duplicate, has_near_duplicate = duplicate_flags(record, canon_records)
-    result = evaluate_workspace_record(
-        record,
-        has_strong_duplicate=has_strong_duplicate,
-        has_near_duplicate=has_near_duplicate,
-    )
-
     timestamp = clock.timestamp()
-    scored_record = score_workspace_record(
+    canon_records = load_workspace_canon(args.config)
+    scored_record, result, _, _ = score_workspace_candidate(
         record,
         canon_records=canon_records,
         timestamp=timestamp,
@@ -74,16 +65,50 @@ def run(args: argparse.Namespace, *, command_clock: CommandClock | None = None) 
         )
         return 4
 
-    accepted = _apply_acceptance(scored_record, timestamp)
+    accepted = apply_manual_acceptance(scored_record, timestamp)
     write_workspace_canon(args.config, accepted)
     record_path.unlink()
     print(f"Accepted {accepted.id} into workspace canon")
     return 0
 
 
-def _apply_acceptance(record: MemoryRecord, timestamp: str) -> MemoryRecord:
+def apply_manual_acceptance(record: MemoryRecord, timestamp: str) -> MemoryRecord:
+    return apply_acceptance(
+        record,
+        timestamp=timestamp,
+        accepted_mode="manual",
+        accepted_by=None,
+    )
+
+
+def apply_policy_acceptance(
+    record: MemoryRecord,
+    *,
+    timestamp: str,
+    accepted_by: str,
+) -> MemoryRecord:
+    return apply_acceptance(
+        record,
+        timestamp=timestamp,
+        accepted_mode="policy",
+        accepted_by=accepted_by,
+    )
+
+
+def apply_acceptance(
+    record: MemoryRecord,
+    *,
+    timestamp: str,
+    accepted_mode: str,
+    accepted_by: str | None,
+) -> MemoryRecord:
     payload = record.to_dict()
+    payload["schema_version"] = 2
     payload["status"] = "accepted"
-    payload["decision"] = Decision(accepted_at=timestamp).to_dict()
+    payload["decision"] = Decision(
+        accepted_at=timestamp,
+        accepted_mode=accepted_mode,
+        accepted_by=accepted_by,
+    ).to_dict()
     payload["updated_at"] = timestamp
     return MemoryRecord.from_dict(payload)

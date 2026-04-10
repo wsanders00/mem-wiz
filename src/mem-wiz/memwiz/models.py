@@ -8,7 +8,8 @@ from typing import Any, Iterable, Mapping, Optional, Sequence
 from memwiz.config import normalize_workspace_slug
 
 
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 2
+ALLOWED_SCHEMA_VERSIONS = {1, 2}
 ALLOWED_SCOPES = {"workspace", "global"}
 ALLOWED_STATUSES = {"captured", "accepted", "archived"}
 ALLOWED_KINDS = {
@@ -20,6 +21,9 @@ ALLOWED_KINDS = {
     "warning",
 }
 ALLOWED_CONFIDENCE = {"low", "medium", "high"}
+ALLOWED_ORIGIN_ACTOR_TYPES = {"user", "agent", "system"}
+ALLOWED_CAPTURE_MODES = {"manual", "autonomous"}
+ALLOWED_ACCEPTED_MODES = {"manual", "policy"}
 ALLOWED_EVIDENCE_SOURCES = {
     "user",
     "conversation",
@@ -131,14 +135,54 @@ class Score:
 
 
 @dataclass
+class Origin:
+    actor_type: str
+    actor_name: Optional[str] = None
+    capture_mode: str = "manual"
+
+    def __post_init__(self) -> None:
+        _validate_choice("actor_type", self.actor_type, ALLOWED_ORIGIN_ACTOR_TYPES)
+        _validate_choice("capture_mode", self.capture_mode, ALLOWED_CAPTURE_MODES)
+        self.actor_name = _normalize_optional_text(self.actor_name)
+
+    @classmethod
+    def from_dict(cls, data: Mapping[str, Any]) -> "Origin":
+        return cls(**data)
+
+    def to_dict(self) -> dict[str, Any]:
+        payload = {
+            "actor_type": self.actor_type,
+            "capture_mode": self.capture_mode,
+        }
+
+        if self.actor_name is not None:
+            payload["actor_name"] = self.actor_name
+
+        return payload
+
+
+@dataclass
 class Decision:
     accepted_at: Optional[str] = None
+    accepted_mode: Optional[str] = None
+    accepted_by: Optional[str] = None
     archived_at: Optional[str] = None
     archive_reason: Optional[str] = None
 
     def __post_init__(self) -> None:
         if self.accepted_at is not None:
             self.accepted_at = normalize_timestamp(self.accepted_at)
+
+        if self.accepted_mode is not None:
+            _validate_choice("accepted_mode", self.accepted_mode, ALLOWED_ACCEPTED_MODES)
+
+        self.accepted_by = _normalize_optional_text(self.accepted_by)
+
+        if self.accepted_at is None and self.accepted_mode is not None:
+            raise ValueError("accepted_mode requires accepted_at")
+
+        if self.accepted_mode is None and self.accepted_by is not None:
+            raise ValueError("accepted_by requires accepted_mode")
 
         if self.archived_at is not None:
             self.archived_at = normalize_timestamp(self.archived_at)
@@ -155,6 +199,12 @@ class Decision:
 
         if self.accepted_at is not None:
             payload["accepted_at"] = self.accepted_at
+
+        if self.accepted_mode is not None:
+            payload["accepted_mode"] = self.accepted_mode
+
+        if self.accepted_by is not None:
+            payload["accepted_by"] = self.accepted_by
 
         if self.archived_at is not None:
             payload["archived_at"] = self.archived_at
@@ -217,6 +267,7 @@ class MemoryRecord:
     score: Optional[Score | Mapping[str, Any]] = None
     tags: Optional[Sequence[str]] = None
     decision: Optional[Decision | Mapping[str, Any]] = None
+    origin: Optional[Origin | Mapping[str, Any]] = None
     score_reasons: Optional[Sequence[str]] = None
     supersedes: Optional[str] = None
     provenance: Optional[Provenance | Mapping[str, Any]] = None
@@ -224,8 +275,8 @@ class MemoryRecord:
     def __post_init__(self) -> None:
         self.schema_version = int(self.schema_version)
 
-        if self.schema_version != SCHEMA_VERSION:
-            raise ValueError("schema_version must equal 1")
+        if self.schema_version not in ALLOWED_SCHEMA_VERSIONS:
+            raise ValueError("schema_version must be one of [1, 2]")
 
         self.id = normalize_memory_id(self.id)
         _validate_choice("scope", self.scope, ALLOWED_SCOPES)
@@ -253,6 +304,7 @@ class MemoryRecord:
         self.score = _coerce_score(self.score)
         self.tags = normalize_tags(self.tags)
         self.decision = _coerce_decision(self.decision)
+        self.origin = _coerce_origin(self.origin)
         self.score_reasons = _normalize_reasons(self.score_reasons)
         self.supersedes = (
             normalize_memory_id(self.supersedes)
@@ -266,6 +318,7 @@ class MemoryRecord:
         if self.updated_at < self.created_at:
             raise ValueError("updated_at must not precede created_at")
 
+        self._validate_schema_rules()
         self._validate_status_rules()
 
     @classmethod
@@ -302,6 +355,9 @@ class MemoryRecord:
 
         if self.decision is not None:
             payload["decision"] = self.decision.to_dict()
+
+        if self.origin is not None:
+            payload["origin"] = self.origin.to_dict()
 
         if self.score_reasons:
             payload["score_reasons"] = list(self.score_reasons)
@@ -371,6 +427,19 @@ class MemoryRecord:
             if self.provenance is not None:
                 raise ValueError("workspace records cannot include provenance")
 
+    def _validate_schema_rules(self) -> None:
+        if self.schema_version != 1:
+            return
+
+        if self.origin is not None:
+            raise ValueError("schema_version 1 forbids origin")
+
+        if self.decision is None:
+            return
+
+        if self.decision.accepted_mode is not None or self.decision.accepted_by is not None:
+            raise ValueError("schema_version 1 forbids accepted_mode and accepted_by")
+
 
 def normalize_memory_id(value: str) -> str:
     candidate = value.strip().lower()
@@ -436,6 +505,18 @@ def _coerce_decision(
         return decision
 
     return Decision.from_dict(decision)
+
+
+def _coerce_origin(
+    origin: Optional[Origin | Mapping[str, Any]],
+) -> Optional[Origin]:
+    if origin is None:
+        return None
+
+    if isinstance(origin, Origin):
+        return origin
+
+    return Origin.from_dict(origin)
 
 
 def _coerce_provenance(

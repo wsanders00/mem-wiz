@@ -9,6 +9,7 @@ from memwiz.storage import write_global_canon, write_workspace_canon
 TOP_LEVEL_COMMANDS = (
     "init",
     "capture",
+    "remember",
     "score",
     "accept",
     "promote",
@@ -18,6 +19,9 @@ TOP_LEVEL_COMMANDS = (
     "get",
     "prune",
     "doctor",
+    "status",
+    "audit",
+    "context",
 )
 
 
@@ -59,6 +63,15 @@ def test_root_help_does_not_label_compile_as_placeholder(run_memwiz) -> None:
     assert "compile placeholder" not in result.stdout
 
 
+def test_root_help_lists_remember_status_audit_and_context(run_memwiz) -> None:
+    result = run_memwiz("--help")
+
+    assert result.returncode == 0
+
+    for command in ("remember", "status", "audit", "context"):
+        assert command in result.stdout
+
+
 def test_unknown_top_level_command_fails_with_parser_error(run_memwiz) -> None:
     result = run_memwiz("unknown-command")
 
@@ -81,6 +94,27 @@ def test_capture_help_lists_workspace_flow_flags(run_memwiz) -> None:
         "--tag",
         "--evidence-source",
         "--evidence-ref",
+    ):
+        assert flag in result.stdout
+
+
+def test_remember_help_lists_policy_and_format_flags(run_memwiz) -> None:
+    result = run_memwiz("remember", "--help")
+
+    assert result.returncode == 0
+
+    for flag in (
+        "--root",
+        "--workspace",
+        "--kind",
+        "--summary",
+        "--details",
+        "--tag",
+        "--evidence-source",
+        "--evidence-ref",
+        "--actor-name",
+        "--policy-profile",
+        "--format",
     ):
         assert flag in result.stdout
 
@@ -128,7 +162,7 @@ def test_search_help_lists_query_scope_limit_and_shared_flags(run_memwiz) -> Non
 
     assert result.returncode == 0
 
-    for flag in ("query", "--scope", "--limit", "--root", "--workspace"):
+    for flag in ("query", "--scope", "--limit", "--format", "--root", "--workspace"):
         assert flag in result.stdout
 
 
@@ -153,7 +187,7 @@ def test_get_help_lists_id_scope_and_shared_flags(run_memwiz) -> None:
 
     assert result.returncode == 0
 
-    for flag in ("--id", "--scope", "--root", "--workspace"):
+    for flag in ("--id", "--scope", "--format", "--root", "--workspace"):
         assert flag in result.stdout
 
 
@@ -171,7 +205,7 @@ def test_doctor_help_lists_shared_flags_only(run_memwiz) -> None:
 
     assert result.returncode == 0
 
-    for flag in ("--root", "--workspace"):
+    for flag in ("--root", "--workspace", "--format"):
         assert flag in result.stdout
 
     for flag in ("--scope", "--dry-run", "--id"):
@@ -195,11 +229,38 @@ def test_compile_help_lists_scope_and_shared_flags(run_memwiz) -> None:
 
     assert result.returncode == 0
 
-    for flag in ("--scope", "--root", "--workspace"):
+    for flag in ("--scope", "--format", "--root", "--workspace"):
         assert flag in result.stdout
 
     for flag in ("--dry-run", "--id"):
         assert flag not in result.stdout
+
+
+def test_status_help_lists_format_and_shared_flags(run_memwiz) -> None:
+    result = run_memwiz("status", "--help")
+
+    assert result.returncode == 0
+
+    for flag in ("--root", "--workspace", "--format"):
+        assert flag in result.stdout
+
+
+def test_audit_help_lists_filter_flags(run_memwiz) -> None:
+    result = run_memwiz("audit", "--help")
+
+    assert result.returncode == 0
+
+    for flag in ("--root", "--workspace", "--day", "--outcome", "--needs-user", "--format"):
+        assert flag in result.stdout
+
+
+def test_context_help_lists_scope_and_format_flags(run_memwiz) -> None:
+    result = run_memwiz("context", "--help")
+
+    assert result.returncode == 0
+
+    for flag in ("--root", "--workspace", "--scope", "--format"):
+        assert flag in result.stdout
 
 
 def test_search_defaults_to_selected_workspace_plus_global_only(

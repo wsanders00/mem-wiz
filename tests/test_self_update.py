@@ -69,7 +69,7 @@ def test_check_for_update_refuses_development_checkout(tmp_path: Path) -> None:
 
     report = check_for_update(
         bundle_root=bundle_root,
-        current_version="0.1",
+        current_version="0.1.0",
         repo=DEFAULT_RELEASE_REPO,
         fetch_release=lambda repo: release_payload("0.2.0"),
     )
@@ -80,7 +80,7 @@ def test_check_for_update_refuses_development_checkout(tmp_path: Path) -> None:
 
 
 def test_apply_update_replaces_bundle_after_valid_download(tmp_path: Path) -> None:
-    bundle_root = make_bundle_root(tmp_path / "install", version="0.1", skill_text="# old skill\n")
+    bundle_root = make_bundle_root(tmp_path / "install", version="0.1.0", skill_text="# old skill\n")
     version = "0.2.0"
     artifact = build_artifact(version=version, skill_text="# new skill\n")
     downloads = {
@@ -90,7 +90,7 @@ def test_apply_update_replaces_bundle_after_valid_download(tmp_path: Path) -> No
 
     report = apply_update(
         bundle_root=bundle_root,
-        current_version="0.1",
+        current_version="0.1.0",
         repo=DEFAULT_RELEASE_REPO,
         fetch_release=lambda repo: release_payload(version),
         download_asset=lambda url: downloads[url],
@@ -107,7 +107,7 @@ def test_apply_update_restores_backup_when_final_swap_fails(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    bundle_root = make_bundle_root(tmp_path / "install", version="0.1", skill_text="# old skill\n")
+    bundle_root = make_bundle_root(tmp_path / "install", version="0.1.0", skill_text="# old skill\n")
     version = "0.2.0"
     artifact = build_artifact(version=version, skill_text="# new skill\n")
     downloads = {
@@ -129,7 +129,7 @@ def test_apply_update_restores_backup_when_final_swap_fails(
     with pytest.raises(UpdateError, match="restored the previous bundle"):
         apply_update(
             bundle_root=bundle_root,
-            current_version="0.1",
+            current_version="0.1.0",
             repo=DEFAULT_RELEASE_REPO,
             fetch_release=lambda repo: release_payload(version),
             download_asset=lambda url: downloads[url],
@@ -139,7 +139,7 @@ def test_apply_update_restores_backup_when_final_swap_fails(
 
 
 def test_apply_update_rejects_checksum_mismatch(tmp_path: Path) -> None:
-    bundle_root = make_bundle_root(tmp_path / "install", version="0.1", skill_text="# old skill\n")
+    bundle_root = make_bundle_root(tmp_path / "install", version="0.1.0", skill_text="# old skill\n")
     version = "0.2.0"
     artifact = build_artifact(version=version, skill_text="# new skill\n")
     downloads = {
@@ -150,7 +150,7 @@ def test_apply_update_rejects_checksum_mismatch(tmp_path: Path) -> None:
     with pytest.raises(UpdateError, match="checksum"):
         apply_update(
             bundle_root=bundle_root,
-            current_version="0.1",
+            current_version="0.1.0",
             repo=DEFAULT_RELEASE_REPO,
             fetch_release=lambda repo: release_payload(version),
             download_asset=lambda url: downloads[url],
@@ -162,16 +162,16 @@ def test_self_update_json_reports_noop_when_already_current(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
 ) -> None:
-    bundle_root = make_bundle_root(tmp_path / "install", version="0.1", skill_text="# skill\n")
+    bundle_root = make_bundle_root(tmp_path / "install", version="0.1.0", skill_text="# skill\n")
 
     monkeypatch.setattr("memwiz.commands.self_update.default_bundle_root", lambda: bundle_root)
     monkeypatch.setattr(
         "memwiz.commands.self_update.check_for_update",
         lambda **kwargs: check_for_update(
             bundle_root=bundle_root,
-            current_version="0.1",
+            current_version="0.1.0",
             repo=DEFAULT_RELEASE_REPO,
-            fetch_release=lambda repo: release_payload("0.1"),
+            fetch_release=lambda repo: release_payload("0.1.0"),
         ),
     )
 
@@ -188,7 +188,7 @@ def test_self_update_json_reports_noop_when_already_current(
 def make_bundle_root(
     path: Path,
     *,
-    version: str = "0.1",
+    version: str = "0.1.0",
     skill_text: str = "# skill\n",
 ) -> Path:
     (path / "memwiz").mkdir(parents=True)

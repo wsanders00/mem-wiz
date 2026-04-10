@@ -10,7 +10,7 @@ the actual release.
 
 1. Apply the version bump in both `pyproject.toml` and `src/mem-wiz/memwiz/__init__.py`.
 2. Run `PYTHONDONTWRITEBYTECODE=1 .venv/bin/python -m pytest -q`.
-3. Build the bundle locally with `python3 scripts/build_skill_artifact.py`.
+3. Build the bundle locally with `.venv/bin/python scripts/build_skill_artifact.py`.
 4. Confirm the artifact name matches `mem-wiz-skill-<version>.zip`.
 5. Generate or verify the companion `.sha256` checksum file for the zip artifact.
 6. Commit the release metadata changes.

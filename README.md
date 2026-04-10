@@ -15,7 +15,7 @@ skill bundle can be released from `src/mem-wiz/`.
   from an unpacked skill bundle.
 - `src/mem-wiz/references/` holds on-demand reference material that keeps
   `SKILL.md` concise.
-- `python3 scripts/build_skill_artifact.py` writes a zip under `dist/` using
+- `.venv/bin/python scripts/build_skill_artifact.py` writes a zip under `dist/` using
   the contents of `src/mem-wiz/` as the archive root.
 - GitHub Releases are the release channel for this project. Each release should
   publish `mem-wiz-skill-<version>.zip` plus a matching `.sha256` checksum.
@@ -32,7 +32,7 @@ skill bundle can be released from `src/mem-wiz/`.
 ## Releases And Updates
 
 - Releases are published from GitHub Releases, not PyPI.
-- Use `python3 scripts/build_skill_artifact.py` to build the release bundle
+- Use `.venv/bin/python scripts/build_skill_artifact.py` to build the release bundle
   locally before tagging.
 - The updater command is `memwiz self-update`.
 - `memwiz self-update --check` reports whether a newer public GitHub release is

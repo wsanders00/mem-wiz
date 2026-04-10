@@ -30,7 +30,7 @@ def _match_toml_value(section_name: str, key: str) -> str:
 def test_project_version_is_simver_compatible() -> None:
     match = re.search(r'^version\s*=\s*"([^"]+)"', PYPROJECT_TEXT, re.MULTILINE)
     assert match is not None
-    assert re.fullmatch(r"\d+\.\d+(?:\.0)?", match.group(1))
+    assert re.fullmatch(r"\d+\.\d+\.\d+", match.group(1))
 
 
 def test_project_version_matches_runtime_version() -> None:
@@ -84,6 +84,13 @@ def test_releasing_doc_exists_and_mentions_version_tags_and_artifacts() -> None:
 
     for phrase in ("version bump", "v0.1.0", "mem-wiz-skill-", ".sha256"):
         assert phrase in releasing_text
+
+
+def test_releasing_doc_example_tag_matches_project_version() -> None:
+    project_version = PYPROJECT["project"]["version"]
+    releasing_text = (REPO_ROOT / "RELEASING.md").read_text(encoding="utf-8")
+
+    assert f"v{project_version}" in releasing_text
 
 
 def test_skill_bundle_root_excludes_generated_dev_artifacts() -> None:

@@ -1,6 +1,7 @@
 TOP_LEVEL_COMMANDS = (
     "init",
     "capture",
+    "remember",
     "score",
     "accept",
     "promote",
@@ -10,6 +11,9 @@ TOP_LEVEL_COMMANDS = (
     "get",
     "prune",
     "doctor",
+    "status",
+    "audit",
+    "context",
 )
 
 

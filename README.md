@@ -63,6 +63,35 @@ audit_retention_days: 30
 max_autonomous_memories_per_day: 25
 ```
 
+## First Use
+
+For a clean first run in one workspace:
+
+```bash
+memwiz --workspace my-repo init
+memwiz --workspace my-repo doctor --format json
+memwiz --workspace my-repo context --format json
+
+memwiz --workspace my-repo remember \
+  --kind workflow \
+  --summary "Run status and audit before handoff." \
+  --details "Use this as the default review loop after autonomous writes." \
+  --evidence-source doc \
+  --evidence-ref README.md \
+  --format json
+
+memwiz --workspace my-repo status --format json
+memwiz --workspace my-repo audit --format json
+```
+
+Notes:
+
+- `init` creates the memory root and scaffolds `policy.yaml` if it is missing.
+- `doctor` is the quick sanity check for root, workspace, and record health.
+- `context` is the bounded task-start read path.
+- `remember` is the autonomous write path for durable knowledge.
+- `status` is the fast review summary; `audit` is the append-only trace.
+
 ## Command Surface
 
 - Manual flow: `capture`, `score`, `accept`, `promote`

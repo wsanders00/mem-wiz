@@ -67,7 +67,7 @@ max_autonomous_memories_per_day: 25
 
 - Manual flow: `capture`, `score`, `accept`, `promote`
 - Autonomous flow: `remember`
-- Review surfaces: `status`, `audit`, `context`
+- Review surfaces: `status` for review pressure and promotion visibility, `audit` for filtered autonomous event history, `context` for bounded wake-up state
 - Retrieval and diagnostics: `search`, `get`, `doctor`, `compile`, `lint`, `prune`
 
 ## Agent-Facing Output
@@ -75,6 +75,12 @@ max_autonomous_memories_per_day: 25
 - `remember --format json` returns a structured decision payload.
 - `search`, `get`, `doctor`, `compile`, `status`, `audit`, and `context` all
   support `--format json`.
+- `status --format json` includes `review_queue_count`, bounded `review_queue`,
+  `promotion_candidate_count`, and bounded `promotion_candidates`.
+- Text `status` output stays compact and prints count-oriented review fields,
+  including `review_queue_count` and `promotion_candidate_count`.
+- `audit` supports targeted review filters such as `--needs-user`,
+  `--outcome`, `--reason-code`, and `--limit`.
 - `context` produces bounded wake-up context from the selected workspace plus
   global scope boundaries without scanning unrelated workspaces.
 
@@ -93,13 +99,14 @@ only durable knowledge, and review autonomous decisions before handoff.
   The default `balanced` profile is intentionally conservative about
   agent-only claims.
 - Review autonomous behavior with `memwiz status --format json` and
-  `memwiz audit --format json`, especially when `remember` returns
-  `review_required: true`, non-empty `reason_codes`, or an outcome that should
-  be inspected before continuing.
+  `memwiz audit --format json`. `status` now surfaces bounded pending-review
+  items and promotable accepted memories; `audit` lets you narrow follow-up by
+  `needs_user`, `outcome`, `reason_code`, and newest-first `limit`.
 - Skip low-value writes. Do not store one-off task status chatter, filler,
   unsupported guesses, duplicate summaries, or secret-like content.
 - Keep global promotion explicit. Use `promote` only for accepted workspace
-  memories that should help across workspaces.
+  memories that should help across workspaces, even when `status` lists them as
+  promotion candidates.
 
 Example agent loop:
 
@@ -115,8 +122,17 @@ memwiz --workspace my-repo remember \
   --format json
 
 memwiz --workspace my-repo status --format json
-memwiz --workspace my-repo audit --needs-user --format json
+memwiz --workspace my-repo audit --needs-user --reason-code near_duplicate --limit 5 --format json
 ```
+
+Review loop notes:
+
+- `status --format json` is the fast summary. Read `review_queue_count` and
+  `promotion_candidate_count` first, then inspect the bounded `review_queue`
+  and `promotion_candidates` lists when those counts are non-zero.
+- `audit --format json` is the trace. Use filters when you need the newest
+  review events for one reason code or only the events that still need user
+  attention.
 
 What to remember:
 

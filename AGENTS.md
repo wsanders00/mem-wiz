@@ -31,6 +31,7 @@ This repository is an agent-agnostic memory skill. Preserve the current model: m
 - Prefer `.venv/bin/memwiz remember --format json` over manual `capture` when the agent needs to save durable knowledge on demand.
 - Save high-signal items only: reusable workflows, durable constraints, warnings, decisions, and stable facts or preferences that will matter again.
 - Prefer non-agent evidence sources such as `command`, `doc`, `file`, `test`, or `user` when available. The default balanced policy is more willing to auto-accept those than pure agent assertions.
-- After autonomous writes, before handoff, or whenever `remember` reports follow-up reason codes, inspect `.venv/bin/memwiz status --format json` and `.venv/bin/memwiz audit --format json`.
+- After autonomous writes or before handoff, inspect `.venv/bin/memwiz status --format json` for `review_queue_count`, bounded `review_queue`, `promotion_candidate_count`, and bounded `promotion_candidates`.
+- Use `.venv/bin/memwiz audit --format json` for targeted follow-up, especially with `--needs-user`, `--outcome`, `--reason-code`, and `--limit`.
 - Do not save one-off task status updates, filler chatter, unsupported guesses, duplicate memories, or secret-like content.
-- Keep `promote` manual and conservative. Only promote accepted workspace memories that deserve cross-workspace reuse.
+- Keep `promote` manual and conservative even when `status` lists promotion candidates. Only promote accepted workspace memories that deserve cross-workspace reuse.

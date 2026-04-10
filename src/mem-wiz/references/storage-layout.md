@@ -9,7 +9,7 @@
 
 ## Runtime Memory Root
 
-- `policy.yaml`: root-level autonomy policy for `remember`.
+- `policy.yaml`: root-level autonomy policy for `remember`, scaffolded by `memwiz init` when missing.
 - `audit/YYYY-MM-DD.jsonl`: append-only autonomous decision log.
 - `global/canon/`: accepted global memories.
 - `global/archive/`: archived global memories.

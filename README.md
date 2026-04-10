@@ -38,14 +38,30 @@ skill bundle can be released from `src/mem-wiz/`.
 
 ## Autonomy Defaults
 
-- `policy.yaml` lives at the memory root and defaults to the `balanced` profile
-  when absent.
+- `memwiz init` now scaffolds `policy.yaml` at the memory root if it does not
+  already exist.
+- `policy.yaml` defaults to the `balanced` profile when absent.
 - The default `balanced` profile allows autonomous capture plus safe workspace
   auto-accept for durable kinds such as `workflow`, `constraint`, `warning`,
   and `decision`.
 - Global auto-promotion stays conservative. The default policy is `suggest`,
   not automatic promotion.
 - Autonomous decisions are append-only under `audit/YYYY-MM-DD.jsonl`.
+
+Default starter policy:
+
+```yaml
+autonomy_profile: balanced
+auto_accept_kinds:
+  - workflow
+  - constraint
+  - warning
+  - decision
+require_non_agent_evidence: true
+global_promotion: suggest
+audit_retention_days: 30
+max_autonomous_memories_per_day: 25
+```
 
 ## Command Surface
 

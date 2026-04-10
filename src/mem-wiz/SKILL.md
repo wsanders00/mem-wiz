@@ -15,6 +15,7 @@ background transcript mining or heavy vector infrastructure.
 ## Autonomy Model
 
 - Root policy lives at `<memwiz-root>/policy.yaml`.
+- `memwiz init` scaffolds the default policy file when it is missing.
 - Missing policy defaults to the `balanced` profile.
 - Autonomous decisions are recorded under `<memwiz-root>/audit/YYYY-MM-DD.jsonl`.
 - The default `balanced` profile may auto-accept safe workspace memories, but
@@ -22,7 +23,7 @@ background transcript mining or heavy vector infrastructure.
 
 ## Current Commands
 
-- `init`: create the memory root plus shared global directories.
+- `init`: create the memory root, shared global directories, and a default `policy.yaml`.
 - `capture`: write a workspace candidate and reject secret-like content.
 - `remember`: capture, score, audit, and possibly auto-accept a workspace memory.
 - `score`: evaluate workspace candidates for workspace retention fitness.

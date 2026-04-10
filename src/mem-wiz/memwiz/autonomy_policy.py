@@ -7,6 +7,7 @@ from typing import Any, Mapping
 import yaml
 
 from memwiz.config import MemwizConfig
+from memwiz.fsops import write_text_atomic
 from memwiz.models import ALLOWED_KINDS
 
 
@@ -55,6 +56,16 @@ class AutonomyPolicy:
             self.max_autonomous_memories_per_day,
         )
 
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "autonomy_profile": self.autonomy_profile,
+            "auto_accept_kinds": list(self.auto_accept_kinds),
+            "require_non_agent_evidence": self.require_non_agent_evidence,
+            "global_promotion": self.global_promotion,
+            "audit_retention_days": self.audit_retention_days,
+            "max_autonomous_memories_per_day": self.max_autonomous_memories_per_day,
+        }
+
 
 def load_policy(config: MemwizConfig) -> AutonomyPolicy:
     payload = _read_policy_payload(config.policy_path)
@@ -75,6 +86,23 @@ def load_policy(config: MemwizConfig) -> AutonomyPolicy:
         policy_data["auto_accept_kinds"] = _normalize_kinds(policy_data["auto_accept_kinds"])
 
     return AutonomyPolicy(**policy_data)
+
+
+def initialize_policy_file(config: MemwizConfig) -> Path:
+    if config.policy_path.exists():
+        return config.policy_path
+
+    write_text_atomic(config.policy_path, dump_policy())
+    return config.policy_path
+
+
+def dump_policy(policy: AutonomyPolicy | None = None) -> str:
+    active_policy = policy if policy is not None else AutonomyPolicy()
+    return yaml.safe_dump(
+        active_policy.to_dict(),
+        sort_keys=False,
+        allow_unicode=False,
+    )
 
 
 def resolve_policy(
